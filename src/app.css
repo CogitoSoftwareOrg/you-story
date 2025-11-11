@@ -1,0 +1,111 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+@plugin 'daisyui';
+
+@custom-variant dark (&:where([data-theme=DARK], [data-theme=DARK] *));
+
+/* LIGHT — мягкий, воздушный, с сиреневым как основным */
+@plugin 'daisyui/theme' {
+	name: 'LIGHT';
+	default: false;
+	prefersdark: false;
+	color-scheme: 'light';
+
+	/* Базы: очень светлые, без синевы, чуть тёплые */
+	--color-base-100: oklch(99% 0 270);
+	--color-base-200: oklch(97% 0 270);
+	--color-base-300: oklch(93% 0.003 270);
+	--color-base-content: oklch(22% 0.008 270);
+
+	/* Основной — нежный сиреневый (lilac) */
+	--color-primary: oklch(86% 0.08 325);
+	--color-primary-content: oklch(24% 0.02 325);
+
+	--color-secondary: oklch(88% 0.05 335);
+	--color-secondary-content: oklch(26% 0.02 335);
+
+	/* мягкий розовый акцент */
+	--color-accent: oklch(88% 0.07 350);
+	--color-accent-content: oklch(24% 0.02 350);
+
+	/* Нейтрали — спокойные холодноватые серые */
+	--color-neutral: oklch(42% 0.015 260);
+	--color-neutral-content: oklch(96% 0.006 260);
+
+	/* Семантика — мягкая, без ядовитой насыщенности */
+	--color-info: oklch(82% 0.09 240);
+	--color-info-content: oklch(24% 0.02 240);
+
+	--color-success: oklch(80% 0.07 150);
+	--color-success-content: oklch(22% 0.02 150);
+
+	--color-warning: oklch(84% 0.1 85);
+	--color-warning-content: oklch(24% 0.02 85);
+
+	--color-error: oklch(78% 0.09 25);
+	--color-error-content: oklch(22% 0.02 25);
+
+	/* Радиусы и «припудренная» глубина без агрессивных теней */
+	--radius-selector: 1rem;
+	--radius-field: 2rem;
+	--radius-box: 1rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 1;
+	--noise: 0;
+}
+
+/* DARK — бархатный фон, «свечение» сиреневого, читаемость выше среднего */
+@plugin 'daisyui/theme' {
+	name: 'DARK';
+	default: false;
+	prefersdark: false;
+	color-scheme: 'dark';
+
+	/* Базы: глубокие, слегка холодные */
+	--color-base-100: oklch(17% 0.008 250);
+	--color-base-200: oklch(15% 0.008 250);
+	--color-base-300: oklch(13% 0.008 250);
+	--color-base-content: oklch(96% 0.01 250);
+
+	/* Основной — подсвеченный lilac, без кислотности */
+	--color-primary: oklch(82% 0.09 325);
+	--color-primary-content: oklch(16% 0.02 325);
+
+	--color-secondary: oklch(78% 0.06 335);
+	--color-secondary-content: oklch(16% 0.02 335);
+
+	/* тёплый розовый акцент на тёмном */
+	--color-accent: oklch(76% 0.1 350);
+	--color-accent-content: oklch(16% 0.02 350);
+
+	/* Нейтрали — устойчивые бордеры/текст (чипы/бейджи) */
+	--color-neutral: oklch(40% 0.012 250);
+	--color-neutral-content: oklch(90% 0.006 250);
+
+	/* Семантика — мягкая, но читаемая на тёмном */
+	--color-info: oklch(80% 0.09 240);
+	--color-info-content: oklch(16% 0.02 240);
+
+	--color-success: oklch(78% 0.07 150);
+	--color-success-content: oklch(16% 0.02 150);
+
+	--color-warning: oklch(82% 0.1 85);
+	--color-warning-content: oklch(18% 0.02 85);
+
+	--color-error: oklch(78% 0.09 25);
+	--color-error-content: oklch(16% 0.02 25);
+
+	--radius-selector: 1rem;
+	--radius-field: 2rem;
+	--radius-box: 1rem;
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--border: 1px;
+	--depth: 1;
+	--noise: 0;
+}
+
+/* Вариант переключения темы через data-theme уже задан через @custom-variant */

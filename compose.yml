@@ -1,0 +1,18 @@
+name: youstory-local
+
+services:
+  pb:
+    build:
+      context: pb
+      dockerfile: Dockerfile
+    environment:
+      - PB_EMAIL=${PB_EMAIL}
+      - PB_PASSWORD=${PB_PASSWORD}
+    volumes:
+      - ./pb/pb_data:/pb/pb_data
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ENV=${ENV}
