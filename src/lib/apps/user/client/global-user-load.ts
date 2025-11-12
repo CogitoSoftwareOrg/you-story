@@ -8,5 +8,11 @@ export async function globalUserLoad() {
 	const res = await pb.collection('users').authRefresh({ expand: 'subs_via_user' });
 	const user = res.record as UsersResponse<UserExpand>;
 	const sub = user.expand?.subs_via_user?.at(0) ?? null;
-	return { user, sub };
+
+	const stories = await pb.collection('stories').getFullList({ filter: `user = "${user.id}"` });
+	const characters = await pb
+		.collection('characters')
+		.getFullList({ filter: `user = "${user.id}"` });
+
+	return { user, sub, stories, characters };
 }

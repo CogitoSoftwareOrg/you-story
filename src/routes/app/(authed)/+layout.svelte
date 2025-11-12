@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-
-	import { userStore, subStore } from '$lib/apps/user/client';
-	import { uiStore } from '$lib/shared/ui/ui.svelte';
 	import { onMount } from 'svelte';
 	import {
 		PanelLeft,
 		Plus,
-		Home,
+		House,
 		Users,
 		Settings,
 		ChevronLeft,
@@ -16,7 +13,13 @@
 		Heart
 	} from 'lucide-svelte';
 
+	import { uiStore } from '$lib/shared/ui/ui.svelte';
+	import { userStore, subStore } from '$lib/apps/user/client';
+	import { storiesStore } from '$lib/apps/story/client';
+	import { charactersStore } from '$lib/apps/character/client';
+
 	import Splash from './Splash.svelte';
+	import { Modal, ThemeController } from '$lib/shared/ui';
 
 	const { children, data } = $props();
 	const { globalPromise } = data;
@@ -27,14 +30,16 @@
 
 	const navItems = [
 		{ path: '/app/stories/new', icon: Plus, label: 'New Story' },
-		{ path: '/app', icon: Home, label: 'Home' },
+		{ path: '/app', icon: House, label: 'Home' },
 		{ path: '/app/characters', icon: Users, label: 'Characters' }
 	];
 
 	onMount(async () => {
-		const { user, sub } = await globalPromise;
+		const { user, sub, stories, characters } = await globalPromise;
 		if (user) userStore.user = user;
 		if (sub) subStore.sub = sub;
+		if (stories) storiesStore.stories = stories;
+		if (characters) charactersStore.setCharacters(characters);
 	});
 
 	$effect(() => {
@@ -47,7 +52,13 @@
 	$effect(() => {
 		const userId = userStore.user?.id;
 		if (userId) userStore.subscribe(userId);
-		return () => userStore.unsubscribe();
+		storiesStore.subscribe();
+		charactersStore.subscribe();
+		return () => {
+			userStore.unsubscribe();
+			storiesStore.unsubscribe();
+			charactersStore.unsubscribe();
+		};
 	});
 
 	$effect(() => {
@@ -125,6 +136,11 @@
 				</ul>
 			</nav>
 
+			<!-- Theme Controller -->
+			<div class={['mb-2 border-base-300', sidebarOpen ? '' : 'flex justify-center']}>
+				<ThemeController expanded={sidebarOpen} navStyle />
+			</div>
+
 			<!-- Profile Card -->
 			<div class="border-t border-base-300">
 				{#if user}
@@ -156,7 +172,7 @@
 
 		<footer class="mobile-dock-footer dock dock-sm z-50 sm:hidden">
 			<a href="/app" data-sveltekit-preload-data="tap" class="dock-item">
-				<Home class={page.url.pathname === '/app' ? 'text-primary' : 'text-neutral'} />
+				<House class={page.url.pathname === '/app' ? 'text-primary' : 'text-neutral'} />
 			</a>
 			<a href="/app/characters" data-sveltekit-preload-data="tap" class="dock-item">
 				<Users class={page.url.pathname === '/app/characters' ? 'text-primary' : 'text-neutral'} />
@@ -172,3 +188,23 @@
 		</footer>
 	</div>
 {/await}
+
+<Modal
+	class="max-h-[90vh] max-w-[90vw] sm:max-h-[95vh]"
+	backdrop
+	open={uiStore.paywallOpen}
+	onclose={() => uiStore.setPaywallOpen(false)}
+>
+	<div></div>
+	<!-- <Paywall stripePrices={data?.stripePrices ?? []} /> -->
+</Modal>
+
+<Modal
+	class="max-w-2xl"
+	backdrop
+	open={uiStore.feedbackModalOpen}
+	onclose={() => uiStore.setFeedbackModalOpen(false)}
+>
+	<div></div>
+	<!-- <FeedbackForm /> -->
+</Modal>
