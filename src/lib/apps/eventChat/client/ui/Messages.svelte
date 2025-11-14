@@ -11,11 +11,11 @@
 	interface Props {
 		messages: MessagesResponse[];
 		userSender: Sender;
-		assistantSender: Sender;
+		assistantSenders: Sender[];
 		class?: ClassValue;
 	}
 
-	const { class: className, messages, userSender, assistantSender }: Props = $props();
+	const { class: className, messages, userSender, assistantSenders }: Props = $props();
 
 	let messagesContainer: HTMLElement | null = $state(null);
 	let showScrollButton = $state(false);
@@ -48,8 +48,11 @@
 		{:else}
 			{#each messages as msg (msg)}
 				{@const incoming = msg.role !== 'user'}
-				{@const sender = msg.role === 'user' ? userSender : assistantSender}
-				<Message {msg} {incoming} {sender} showHeader={msg.role === 'user'} />
+				{@const sender =
+					msg.role === 'user'
+						? userSender
+						: assistantSenders.find((s) => s.id === msg.character) || assistantSenders[0]}
+				<Message {msg} {incoming} {sender} showHeader={Boolean(msg.character)} />
 			{/each}
 		{/if}
 

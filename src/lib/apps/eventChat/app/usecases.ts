@@ -41,7 +41,7 @@ class EventChatAppImpl implements EventChatApp {
 			});
 		const chat = EventChat.fromResponse(chatRes);
 
-		await pb.collection(Collections.Messages).create({
+		const userMsg = await pb.collection(Collections.Messages).create({
 			chat: cmd.chatId,
 			content: cmd.query,
 			role: MessagesRoleOptions.user,
@@ -56,16 +56,17 @@ class EventChatAppImpl implements EventChatApp {
 			status: MessagesStatusOptions.streaming
 		});
 
-		return this.createSSEStream(story, storyEvent, chat, aiMsg);
+		return this.createSSEStream(story, storyEvent, chat, userMsg, aiMsg);
 	}
 
 	private createSSEStream(
 		story: Story,
 		storyEvent: StoryEvent,
 		chat: EventChat,
+		userMsg: MessagesResponse,
 		aiMsg: MessagesResponse
 	): ReadableStream {
-		const storytellerStream = this.storyteller.streamStory(story, storyEvent, chat);
+		const storytellerStream = this.storyteller.streamStory(story, storyEvent, chat, userMsg);
 		const encoder = new TextEncoder();
 
 		return new ReadableStream({

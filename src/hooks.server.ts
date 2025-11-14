@@ -1,3 +1,5 @@
+import '$lib/shared/server/instrumentation';
+
 import PocketBase from 'pocketbase';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';

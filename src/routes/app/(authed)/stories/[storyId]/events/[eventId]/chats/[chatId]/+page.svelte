@@ -6,7 +6,7 @@
 	import MessageControls from '$lib/apps/eventChat/client/ui/MessageControls.svelte';
 	import { Button } from '$lib/shared/ui';
 	import { ArrowLeft, Save, MessageCircle } from 'lucide-svelte';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import {
 		type EventChatsResponse,
 		EventChatsCommitModeOptions,
@@ -14,6 +14,8 @@
 		MessagesRoleOptions,
 		Collections
 	} from '$lib';
+	import { userStore } from '$lib/apps/user/client';
+	import { charactersStore } from '$lib/apps/character/client';
 
 	const storyId = $derived(page.params.storyId);
 	const eventId = $derived(page.params.eventId);
@@ -21,7 +23,6 @@
 
 	// Chat state
 	let chat = $state<EventChatsResponse | null>(null);
-	let povCharacter = $state<string>('');
 	let commitMode = $state<EventChatsCommitModeOptions>(EventChatsCommitModeOptions.autoCommit);
 	let status = $state<EventChatsStatusOptions>(EventChatsStatusOptions.inProgress);
 	let isLoading = $state(true);
@@ -30,20 +31,27 @@
 	// Messages
 	const messages = $derived(messagesStore.messages);
 
+	const chars = $derived(charactersStore.characters);
+	let povCharacter = $derived(chars.find((char) => char.id === chat?.povCharacter));
+
 	// Senders for Messages component
 	const userSender = $derived({
 		id: 'user',
-		name: 'You',
+		name: `You (${povCharacter?.name ?? 'World'})`,
 		role: 'user' as const,
-		avatar: undefined
+		avatar: povCharacter
+			? charactersStore.getCharacterAvatar(povCharacter)
+			: (userStore.avatarUrl ?? '')
 	});
 
-	const assistantSender = $derived({
-		id: 'ai',
-		name: 'AI Assistant',
-		role: 'ai' as const,
-		avatar: undefined
-	});
+	const assistantSenders = $derived([
+		{
+			id: 'ai',
+			name: 'AI Assistant',
+			role: 'ai' as const,
+			avatar: userStore.avatarUrl ?? ''
+		}
+	]);
 
 	// Load chat data and messages
 	onMount(async () => {
@@ -55,7 +63,6 @@
 		try {
 			const loadedChat = await eventChatsStore.getById(chatId);
 			chat = loadedChat;
-			povCharacter = loadedChat.povCharacter ?? '';
 			commitMode = loadedChat.commitMode ?? EventChatsCommitModeOptions.autoCommit;
 			status = loadedChat.status ?? EventChatsStatusOptions.inProgress;
 		} catch (error) {
@@ -76,7 +83,7 @@
 
 		try {
 			await eventChatsApi.update(chat.id, {
-				povCharacter,
+				povCharacter: povCharacter?.id,
 				commitMode,
 				status
 			});
@@ -203,7 +210,7 @@
 					<span class="loading loading-lg loading-spinner"></span>
 				</div>
 			{:else}
-				<Messages {messages} {userSender} {assistantSender} class="h-full" />
+				<Messages {messages} {userSender} {assistantSenders} class="h-full" />
 			{/if}
 		</div>
 
