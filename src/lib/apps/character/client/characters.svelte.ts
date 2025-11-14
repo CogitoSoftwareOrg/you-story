@@ -6,7 +6,9 @@ import type { CreateCharacterData } from './charactersApi';
 class CharactersStore {
 	_characters: CharactersResponse[] = $state([]);
 
-	characters = $derived(this._characters);
+	characters = $derived(this._characters.filter((c) => !c.archived));
+	archivedCharacters = $derived(this._characters.filter((c) => c.archived));
+
 	setCharacters(characters: CharactersResponse[]) {
 		this._characters = characters;
 	}

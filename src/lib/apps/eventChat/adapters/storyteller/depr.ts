@@ -29,7 +29,7 @@ ONLY Available characters to use:
 You can't use POV character of the user
 `;
 
-class StorytellerAdapter implements Storyteller {
+class CinemaStoryteller implements Storyteller {
 	streamStory(
 		story: Story,
 		storyEvent: StoryEvent,
@@ -127,4 +127,4 @@ class StorytellerAdapter implements Storyteller {
 	}
 }
 
-export const storyteller = new StorytellerAdapter();
+export const storyteller = new CinemaStoryteller();

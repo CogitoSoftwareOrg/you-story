@@ -1,19 +1,18 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { eventChatsApi, eventChatsStore, messagesStore } from '$lib/apps/eventChat/client';
+	import {
+		eventChatsApi,
+		eventChatsStore,
+		messagesStore,
+		ChatController
+	} from '$lib/apps/eventChat/client';
 	import Messages from '$lib/apps/eventChat/client/ui/Messages.svelte';
 	import MessageControls from '$lib/apps/eventChat/client/ui/MessageControls.svelte';
 	import { Button } from '$lib/shared/ui';
-	import { ArrowLeft, Save, MessageCircle } from 'lucide-svelte';
+	import { ArrowLeft, MessageCircle } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import {
-		type EventChatsResponse,
-		EventChatsCommitModeOptions,
-		EventChatsStatusOptions,
-		MessagesRoleOptions,
-		Collections
-	} from '$lib';
+	import { type EventChatsResponse, MessagesRoleOptions } from '$lib';
 	import { userStore } from '$lib/apps/user/client';
 	import { charactersStore } from '$lib/apps/character/client';
 
@@ -22,11 +21,8 @@
 	const chatId = $derived(page.params.chatId);
 
 	// Chat state
-	let chat = $state<EventChatsResponse | null>(null);
-	let commitMode = $state<EventChatsCommitModeOptions>(EventChatsCommitModeOptions.autoCommit);
-	let status = $state<EventChatsStatusOptions>(EventChatsStatusOptions.inProgress);
+	let chat = $state<EventChatsResponse<string[]> | null>(null);
 	let isLoading = $state(true);
-	let isSaving = $state(false);
 
 	// Messages
 	const messages = $derived(messagesStore.messages);
@@ -62,9 +58,7 @@
 
 		try {
 			const loadedChat = await eventChatsStore.getById(chatId);
-			chat = loadedChat;
-			commitMode = loadedChat.commitMode ?? EventChatsCommitModeOptions.autoCommit;
-			status = loadedChat.status ?? EventChatsStatusOptions.inProgress;
+			chat = loadedChat as EventChatsResponse<string[]>;
 		} catch (error) {
 			console.error('Failed to load chat:', error);
 		} finally {
@@ -74,24 +68,6 @@
 
 	function handleBack() {
 		goto(`/app/stories/${storyId}/events/${eventId}/chats`);
-	}
-
-	async function handleSaveChat() {
-		if (!chat || isSaving) return;
-
-		isSaving = true;
-
-		try {
-			await eventChatsApi.update(chat.id, {
-				povCharacter: povCharacter?.id,
-				commitMode,
-				status
-			});
-		} catch (error) {
-			console.error('Failed to update chat:', error);
-		} finally {
-			isSaving = false;
-		}
 	}
 
 	async function handleSendMessage(content: string) {
@@ -111,21 +87,11 @@
 		class="flex w-96 flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
 	>
 		<!-- Header -->
-		<div class="flex items-center justify-between border-b border-base-300 p-6">
-			<div class="flex items-center gap-3">
-				<Button onclick={handleBack} size="md" style="solid" circle>
-					<ArrowLeft class="size-5" />
-				</Button>
-				<h2 class="text-xl font-semibold text-base-content">Chat Settings</h2>
-			</div>
-			<Button onclick={handleSaveChat} size="md" color="primary" disabled={isSaving}>
-				{#if isSaving}
-					<span class="loading loading-sm loading-spinner"></span>
-				{:else}
-					<Save class="size-4" />
-				{/if}
-				<span>Save</span>
+		<div class="flex items-center gap-3 border-b border-base-300 p-6">
+			<Button onclick={handleBack} size="md" style="solid" circle>
+				<ArrowLeft class="size-5" />
 			</Button>
+			<h2 class="text-xl font-semibold text-base-content">Chat Settings</h2>
 		</div>
 
 		<!-- Form Content -->
@@ -135,49 +101,7 @@
 					<span class="loading loading-lg loading-spinner"></span>
 				</div>
 			{:else if chat}
-				<div class="space-y-4">
-					<!-- Status -->
-					<!-- <div class="form-control">
-						<label class="label" for="chat-status-select">
-							<span class="label-text font-semibold">Status</span>
-						</label>
-						<select
-							bind:value={status}
-							id="chat-status-select"
-							class="select-bordered select w-full"
-						>
-							{#each statusOptions as option}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
-					</div> -->
-
-					<!-- Commit Mode -->
-					<!-- <div class="form-control">
-						<label class="label" for="chat-commit-mode-select">
-							<span class="label-text font-semibold">Commit Mode</span>
-						</label>
-						<select
-							bind:value={commitMode}
-							id="chat-commit-mode-select"
-							class="select-bordered select w-full"
-						>
-							{#each commitModeOptions as option}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
-					</div> -->
-
-					<!-- Chat Info -->
-					<div class="rounded-lg border border-base-300 bg-base-100 p-4">
-						<h4 class="mb-2 text-sm font-semibold text-base-content">Chat Info</h4>
-						<div class="space-y-1 text-xs text-base-content/60">
-							<p>ID: {chat.id}</p>
-							<p>Created: {new Date(chat.created).toLocaleString()}</p>
-							<p>Updated: {new Date(chat.updated).toLocaleString()}</p>
-						</div>
-					</div>
-				</div>
+				<ChatController {chat} />
 			{:else}
 				<div class="flex h-full items-center justify-center text-base-content/60">
 					Chat not found

@@ -24,7 +24,7 @@ Event: ${this.data.name}
 Description: ${this.data.description}
 Characters: ${chars
 			.map((char) => {
-				return `- ${char.name}, Age: ${char.age}, Description: ${char.description}`;
+				return `- id: ${char.id}, name: ${char.name}, Age: ${char.age}, Description: ${char.description}`;
 			})
 			.join('\n')}
 `;

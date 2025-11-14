@@ -5,7 +5,11 @@
 	import { eventChatsStore, ChatForm, eventChatsApi } from '$lib/apps/eventChat/client';
 	import { Button } from '$lib/shared/ui';
 	import { ArrowLeft, Rocket } from 'lucide-svelte';
-	import { EventChatsCommitModeOptions, EventChatsStatusOptions } from '$lib';
+	import {
+		EventChatsCommitModeOptions,
+		EventChatsStatusOptions,
+		EventChatsTypeOptions
+	} from '$lib';
 
 	const storyId = $derived(page.params.storyId);
 	const eventId = $derived(page.params.eventId);
@@ -17,10 +21,11 @@
 			? EventChatsCommitModeOptions.noncanonical
 			: EventChatsCommitModeOptions.autoCommit
 	);
+	let type = $state<EventChatsTypeOptions>(EventChatsTypeOptions.story);
 	let povCharacter = $state('');
 	let isCreating = $state(false);
 
-	const canCreate = $derived(povCharacter !== '');
+	const canCreate = $derived(true);
 
 	function handleBack() {
 		goto(`/app/stories/${storyId}/events/${eventId}/chats`);
@@ -36,6 +41,7 @@
 				storyEvent: eventId,
 				povCharacter,
 				commitMode,
+				type,
 				status: EventChatsStatusOptions.inProgress
 			});
 
@@ -62,7 +68,7 @@
 						<h2 class="text-xl font-semibold text-base-content">Start New Chat</h2>
 						{#if event}
 							<p class="text-sm text-base-content/60">
-								{event.name || 'Unnamed Event'}
+								{event.name || '<Unnamed Event>'}
 							</p>
 						{/if}
 					</div>
@@ -72,7 +78,7 @@
 			<!-- Form Content -->
 			<div class="p-6">
 				{#if event}
-					<ChatForm bind:povCharacter availableCharacters={event.characters ?? []} />
+					<ChatForm bind:povCharacter bind:type availableCharacters={event.characters ?? []} />
 
 					<!-- Action Button -->
 					<div class="mt-6 flex justify-end">

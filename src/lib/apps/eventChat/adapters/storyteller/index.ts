@@ -1,1 +1,1 @@
-export { storyteller } from './single-hit';
+export { storyteller } from './cinema-storyteller';
