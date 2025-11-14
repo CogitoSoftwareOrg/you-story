@@ -7,8 +7,7 @@ export async function loadStoryContext(storyId: string) {
 
 	const eventChats = await pb.collection('eventChats').getFullList({
 		filter: `storyEvent.story = "${storyId}"`,
-		expand: 'storyEvent',
-		fields: 'storyEvent.story'
+		expand: 'storyEvent'
 	});
 	return { storyEvents, eventChats };
 }

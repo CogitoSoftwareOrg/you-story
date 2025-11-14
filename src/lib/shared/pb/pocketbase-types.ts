@@ -11,8 +11,9 @@ export enum Collections {
 	Mfas = "_mfas",
 	Otps = "_otps",
 	Superusers = "_superusers",
-	CharacterDiffs = "characterDiffs",
+	CanonicalPatches = "canonicalPatches",
 	Characters = "characters",
+	DraftPatches = "draftPatches",
 	EventChats = "eventChats",
 	Messages = "messages",
 	Stories = "stories",
@@ -99,13 +100,20 @@ export type SuperusersRecord = {
 	verified?: boolean
 }
 
-export type CharacterDiffsRecord<Tpatch = unknown> = {
+export enum CanonicalPatchesTypeOptions {
+	"character" = "character",
+	"world" = "world",
+}
+export type CanonicalPatchesRecord<Tpatch = unknown> = {
 	character?: RecordIdString
 	created: IsoAutoDateString
 	description?: string
+	eventLocalSeq?: number
 	id: string
+	logSeq?: number
 	patch?: null | Tpatch
 	storyEvent?: RecordIdString
+	type?: CanonicalPatchesTypeOptions
 	updated: IsoAutoDateString
 }
 
@@ -120,16 +128,40 @@ export type CharactersRecord = {
 	user?: RecordIdString
 }
 
+export enum DraftPatchesTypeOptions {
+	"character" = "character",
+	"world" = "world",
+}
+export type DraftPatchesRecord<Tpatch = unknown> = {
+	character?: RecordIdString
+	chat?: RecordIdString
+	created: IsoAutoDateString
+	description?: string
+	eventLogSeq?: number
+	id: string
+	patch?: null | Tpatch
+	type?: DraftPatchesTypeOptions
+	updated: IsoAutoDateString
+}
+
 export enum EventChatsCommitModeOptions {
 	"noncanonical" = "noncanonical",
 	"proposeDiffs" = "proposeDiffs",
 	"autoCommit" = "autoCommit",
 }
-export type EventChatsRecord = {
+
+export enum EventChatsStatusOptions {
+	"inProgress" = "inProgress",
+	"fixed" = "fixed",
+	"draft" = "draft",
+}
+export type EventChatsRecord<Tnotes = unknown> = {
 	commitMode?: EventChatsCommitModeOptions
 	created: IsoAutoDateString
 	id: string
+	notes?: null | Tnotes
 	povCharacter?: RecordIdString
+	status?: EventChatsStatusOptions
 	storyEvent?: RecordIdString
 	updated: IsoAutoDateString
 }
@@ -150,6 +182,7 @@ export type MessagesRecord<Tmetadata = unknown> = {
 	id: string
 	metadata?: null | Tmetadata
 	role?: MessagesRoleOptions
+	sender?: RecordIdString
 	status?: MessagesStatusOptions
 	updated: IsoAutoDateString
 }
@@ -227,9 +260,10 @@ export type ExternalauthsResponse<Texpand = unknown> = Required<ExternalauthsRec
 export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemFields<Texpand>
 export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
-export type CharacterDiffsResponse<Tpatch = unknown, Texpand = unknown> = Required<CharacterDiffsRecord<Tpatch>> & BaseSystemFields<Texpand>
+export type CanonicalPatchesResponse<Tpatch = unknown, Texpand = unknown> = Required<CanonicalPatchesRecord<Tpatch>> & BaseSystemFields<Texpand>
 export type CharactersResponse<Texpand = unknown> = Required<CharactersRecord> & BaseSystemFields<Texpand>
-export type EventChatsResponse<Texpand = unknown> = Required<EventChatsRecord> & BaseSystemFields<Texpand>
+export type DraftPatchesResponse<Tpatch = unknown, Texpand = unknown> = Required<DraftPatchesRecord<Tpatch>> & BaseSystemFields<Texpand>
+export type EventChatsResponse<Tnotes = unknown, Texpand = unknown> = Required<EventChatsRecord<Tnotes>> & BaseSystemFields<Texpand>
 export type MessagesResponse<Tmetadata = unknown, Texpand = unknown> = Required<MessagesRecord<Tmetadata>> & BaseSystemFields<Texpand>
 export type StoriesResponse<Tbible = unknown, Texpand = unknown> = Required<StoriesRecord<Tbible>> & BaseSystemFields<Texpand>
 export type StoryEventsResponse<Texpand = unknown> = Required<StoryEventsRecord> & BaseSystemFields<Texpand>
@@ -244,8 +278,9 @@ export type CollectionRecords = {
 	_mfas: MfasRecord
 	_otps: OtpsRecord
 	_superusers: SuperusersRecord
-	characterDiffs: CharacterDiffsRecord
+	canonicalPatches: CanonicalPatchesRecord
 	characters: CharactersRecord
+	draftPatches: DraftPatchesRecord
 	eventChats: EventChatsRecord
 	messages: MessagesRecord
 	stories: StoriesRecord
@@ -260,8 +295,9 @@ export type CollectionResponses = {
 	_mfas: MfasResponse
 	_otps: OtpsResponse
 	_superusers: SuperusersResponse
-	characterDiffs: CharacterDiffsResponse
+	canonicalPatches: CanonicalPatchesResponse
 	characters: CharactersResponse
+	draftPatches: DraftPatchesResponse
 	eventChats: EventChatsResponse
 	messages: MessagesResponse
 	stories: StoriesResponse

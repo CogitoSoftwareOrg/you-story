@@ -146,11 +146,12 @@
 			<span class="label-text-alt text-xs text-base-content/50">Optional</span>
 		</label>
 		<textarea
-			rows={3}
+			rows={6}
 			placeholder="Describe what happens in this opening event..."
 			bind:value={description}
 			id={eventDescriptionId}
 			class="textarea-bordered textarea w-full"
+			style="resize: vertical; height: auto;"
 			{disabled}
 		></textarea>
 	</div>

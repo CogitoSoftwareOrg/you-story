@@ -18,9 +18,9 @@
 	import { userStore, subStore } from '$lib/apps/user/client';
 	import { storiesStore } from '$lib/apps/story/client';
 	import { charactersStore } from '$lib/apps/character/client';
+	import { Modal, ThemeController } from '$lib/shared/ui';
 
 	import Splash from './Splash.svelte';
-	import { Modal, ThemeController } from '$lib/shared/ui';
 
 	const { children, data } = $props();
 	const { globalPromise } = data;
@@ -89,12 +89,12 @@
 			<!-- Header -->
 			<div
 				class={[
-					'flex h-16 items-center border-b border-base-300 px-4',
+					'flex h-16 items-center border-b border-base-300 px-2',
 					sidebarOpen ? 'justify-between' : 'justify-center'
 				]}
 			>
 				{#if sidebarOpen}
-					<a href="/app" class="flex items-center gap-2">
+					<a href="/app/stories" class="flex items-center gap-2">
 						<div class="text-2xl font-bold text-primary"><Heart class="size-8 text-primary" /></div>
 						<span class="text-lg font-semibold">YouStory</span>
 					</a>

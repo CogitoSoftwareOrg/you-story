@@ -153,7 +153,7 @@
 
 	function handleGoToEvent() {
 		if (selectedEventId) {
-			goto(`/app/stories/${storyId}/events/${selectedEventId}`);
+			goto(`/app/stories/${storyId}/events/${selectedEventId}/chats`);
 		}
 	}
 
