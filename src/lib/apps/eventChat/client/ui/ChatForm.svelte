@@ -39,7 +39,7 @@
 	];
 
 	const eventCharacters = $derived(
-		charactersStore.characters.filter((c) => availableCharacters.includes(c.id))
+		charactersStore.characters.filter((c) => availableCharacters?.includes(c.id))
 	);
 
 	const povCharacterId = 'pov-character-select';

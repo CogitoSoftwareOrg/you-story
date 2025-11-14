@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { eventChatsStore } from './eventChats.svelte';
-	import EventChatCard from './EventChatCard.svelte';
-	import { Button } from '$lib/shared/ui';
 	import { Plus } from 'lucide-svelte';
+
+	import { Button } from '$lib/shared/ui';
+	import { eventChatsStore } from '../eventChats.svelte';
+	import EventChatCard from './EventChatCard.svelte';
 
 	interface Props {
 		eventId: string;

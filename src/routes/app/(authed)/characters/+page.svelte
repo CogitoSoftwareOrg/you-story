@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { Plus, Trash, User } from 'lucide-svelte';
 	import type { CharactersResponse } from '$lib';
-	import { charactersStore, EditCharacter, CharacterCard } from '$lib/apps/character/client';
+	import {
+		charactersApi,
+		charactersStore,
+		EditCharacter,
+		CharacterCard
+	} from '$lib/apps/character/client';
 	import { Button, Modal } from '$lib/shared/ui';
 
 	let selectedCharacter = $state<CharactersResponse | null>(null);
@@ -28,7 +33,7 @@
 	}
 
 	function handleArchiveCharacter(character: CharactersResponse) {
-		charactersStore.archive(character.id);
+		charactersApi.archive(character.id);
 	}
 </script>
 

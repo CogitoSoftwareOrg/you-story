@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { ArrowLeft, Sparkles } from 'lucide-svelte';
-	import { StoryForm, storiesStore } from '$lib/apps/story/client';
+	import { StoryForm, storiesApi, storiesStore } from '$lib/apps/story/client';
 	import { EventForm, storyEventsStore } from '$lib/apps/storyEvent/client';
 	import type { StoryBible } from '$lib/apps/story/core/model';
 	import { userStore } from '$lib/apps/user/client';
 	import { Button } from '$lib/shared/ui';
+	import { storyEventsApi } from '$lib/apps/storyEvent/client/storyEventsApi';
 
 	const user = $derived(userStore.user);
 
@@ -46,7 +47,7 @@
 				worldFacts: parseMultiline(worldFactsText)
 			};
 
-			const story = await storiesStore.create({
+			const story = await storiesApi.create({
 				name: storyName.trim() || undefined,
 				description: storyDescription.trim() || undefined,
 				cover: coverFile ?? undefined,
@@ -54,10 +55,8 @@
 				bible
 			});
 
-			storiesStore.addStory(story);
-
-			await storyEventsStore.createFirstEvent({
-				storyId: story.id,
+			await storyEventsApi.create({
+				story: story.id,
 				name: eventName.trim() || undefined,
 				description: eventDescription.trim() || undefined,
 				characters: eventCharacters,

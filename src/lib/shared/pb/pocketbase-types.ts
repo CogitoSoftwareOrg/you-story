@@ -178,6 +178,7 @@ export enum MessagesStatusOptions {
 	"optimistic" = "optimistic",
 }
 export type MessagesRecord<Tmetadata = unknown> = {
+	chat?: RecordIdString
 	content?: string
 	created: IsoAutoDateString
 	id: string

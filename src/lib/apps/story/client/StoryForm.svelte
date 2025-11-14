@@ -14,13 +14,13 @@
 	}
 
 	let {
+		disabled = false,
 		name = $bindable(''),
 		description = $bindable(''),
 		styleText = $bindable(''),
 		worldFactsText = $bindable(''),
 		coverFile = $bindable(null),
 		coverPreview = $bindable(null),
-		disabled = false,
 		isDirty = $bindable(false)
 	}: Props = $props();
 

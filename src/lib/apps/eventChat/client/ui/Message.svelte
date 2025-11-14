@@ -1,20 +1,15 @@
 <script lang="ts">
+	// @ts-ignore
+	import { DateTime } from 'luxon';
 	import { marked } from 'marked';
 	import DOMPurify from 'dompurify';
-	import { DateTime } from 'luxon';
+	import { Bot } from 'lucide-svelte';
 	import type { ClassValue } from 'svelte/elements';
 
 	import userImageDefault from '$lib/assets/images/user.png';
 	import type { MessagesResponse } from '$lib';
 
-	import { Bot } from 'lucide-svelte';
-
-	export type Sender = {
-		id: string;
-		avatar: string;
-		name: string;
-		role: string;
-	};
+	import type { Sender } from '$lib/apps/eventChat/core';
 
 	interface Props {
 		class?: ClassValue;

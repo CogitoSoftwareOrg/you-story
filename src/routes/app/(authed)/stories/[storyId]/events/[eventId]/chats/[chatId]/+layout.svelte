@@ -1,14 +1,20 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { messagesStore } from '$lib/apps/eventChat/client/messages.svelte.js';
 
 	let { children, data } = $props();
 
-	const storyId = $derived(page.params.storyId);
-	const eventId = $derived(page.params.eventId);
 	const chatId = $derived(page.params.chatId);
 
 	$effect(() => {
-		console.log(storyId, eventId, chatId);
+		if (!chatId) return;
+		messagesStore.load(chatId).then(() => {
+			messagesStore.subscribe(chatId);
+		});
+
+		return () => {
+			messagesStore.unsubscribe();
+		};
 	});
 </script>
 

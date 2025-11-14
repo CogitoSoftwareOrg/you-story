@@ -6,6 +6,7 @@
 	import { Button } from '$lib/shared/ui';
 	import pchelImage from '$lib/shared/assets/images/pchel.png';
 	import { userStore } from '$lib/apps/user/client';
+	import { charactersApi } from './charactersApi';
 
 	interface Props {
 		character?: CharactersResponse | null;
@@ -95,11 +96,10 @@
 			if (user?.id) data.user = user.id;
 
 			if (isCreating) {
-				const tempId = `temp-${Date.now()}`;
-				charactersStore.addCharacter(tempId, data);
-				await charactersStore.create(data);
+				charactersStore.addOptimisticCharacter(data);
+				await charactersApi.create(data);
 			} else if (character) {
-				await charactersStore.update(character.id, data);
+				await charactersApi.update(character.id, data);
 			}
 
 			closeModal();

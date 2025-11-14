@@ -1,14 +1,8 @@
-import { pb, type Collections, type IsoAutoDateString, type MessagesResponse } from '$lib';
-
-import type { Sender } from './Message.svelte';
+import { Collections, pb, type Create, type MessagesResponse } from '$lib';
+import type { MessageChunk } from '$lib/apps/eventChat/core';
 
 class MessagesStore {
-	_loaded = $state(false);
 	_messages: MessagesResponse[] = $state([]);
-
-	get loaded() {
-		return this._loaded;
-	}
 
 	get messages() {
 		return this._messages;
@@ -17,60 +11,41 @@ class MessagesStore {
 		this._messages = messages;
 	}
 
-	async load(quizAttemptId: string) {
-		const messages = await pb!.collection('messages').getFullList({
-			filter: `quizAttempt = "${quizAttemptId}"`,
+	getById(id: string) {
+		return this._messages.find((m) => m.id === id);
+	}
+
+	addChunk(chunk: MessageChunk) {
+		const msg = this.getById(chunk.msg_id);
+		if (!msg || msg.status !== 'streaming') return;
+
+		// const nextI = chunk.i ?? ((msg as any)._last_i ?? 0) + 1;
+		// if ((msg as any)._last_i && nextI <= (msg as any)._last_i) return;
+		// (msg as any)._last_i = nextI;
+
+		msg.content = (msg.content || '') + chunk.text;
+		this._messages = this._messages.map((m) => (m.id === msg.id ? msg : m));
+	}
+
+	async load(chatId: string) {
+		const messages = await pb.collection(Collections.Messages).getFullList({
+			filter: `eventChat = "${chatId}"`,
 			sort: 'created'
 		});
 		this.messages = messages;
-		this._loaded = true;
 	}
 
-	async sendMessage(sender: Sender, content: string, itemId: string) {
-		const clientMsg: MessagesResponse = {
-			collectionId: 'messages',
-			collectionName: 'messages' as Collections,
+	addOptimisticMessage(dto: Create<Collections.Messages>) {
+		const message = {
 			id: `temp-${Date.now()}`,
-			content,
-			created: new Date().toISOString() as IsoAutoDateString,
-			updated: new Date().toISOString() as IsoAutoDateString,
-			metadata: { item_id: itemId },
-			role: sender.role as MessagesResponse['role'],
-			status: 'onClient' as MessagesResponse['status'],
-			sender: sender.id
-		};
-
-		this.messages.push(clientMsg);
-		const msg = { ...clientMsg, status: 'final' };
-		await pb!.collection('messages').create(msg);
-
-		const es = new EventSource(`api//sse?q=${encodeURIComponent(content)}&item=${itemId}`, {
-			withCredentials: true
-		});
-		es.addEventListener('chunk', (e) => {
-			const data = JSON.parse(e.data) as { text: string; msg_id: string; i?: number };
-			const msg = { ...this._messages.find((m) => m.id === data.msg_id) } as MessagesResponse;
-			if (!msg || msg.status !== 'streaming') return;
-
-			// const nextI = data.i ?? ((msg as any)._last_i ?? 0) + 1;
-			// if ((msg as any)._last_i && nextI <= (msg as any)._last_i) return;
-			// (msg as any)._last_i = nextI;
-
-			msg.content = (msg.content || '') + data.text;
-			const newMessages = this._messages.map((m) => (m.id === msg.id ? msg : m));
-			this._messages = newMessages;
-		});
-		es.addEventListener('error', (e) => {
-			console.error(e);
-			es.close();
-		});
-		es.addEventListener('done', () => {
-			es.close();
-		});
+			...dto,
+			status: 'optimistic' as MessagesResponse['status']
+		} as MessagesResponse;
+		this._messages.push(message);
 	}
 
-	async subscribe(quizAttemptId: string) {
-		return pb!.collection('messages').subscribe(
+	subscribe(eventChatId: string) {
+		return pb.collection(Collections.Messages).subscribe(
 			'*',
 			(e) => {
 				const message = e.record;
@@ -91,13 +66,13 @@ class MessagesStore {
 				}
 			},
 			{
-				filter: `quizAttempt = "${quizAttemptId}"`
+				filter: `eventChat = "${eventChatId}"`
 			}
 		);
 	}
 
 	unsubscribe() {
-		pb!.collection('messages').unsubscribe();
+		pb.collection(Collections.Messages).unsubscribe();
 	}
 }
 

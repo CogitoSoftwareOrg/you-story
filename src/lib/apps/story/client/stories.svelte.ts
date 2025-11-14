@@ -1,5 +1,5 @@
-import { pb, type StoriesRecord, type StoriesResponse } from '$lib';
-import type { StoryBible } from '../core/model';
+import { pb, type StoriesResponse } from '$lib';
+
 import pchelImage from '$lib/shared/assets/images/pchel.png';
 
 class StoriesStore {
@@ -19,57 +19,6 @@ class StoriesStore {
 	getCoverUrl(story: StoriesResponse): string | null {
 		if (!story.cover) return null;
 		return pb?.files.getURL(story, story.cover) ?? pchelImage;
-	}
-
-	async create(
-		data: Omit<Partial<StoriesRecord<StoryBible>>, 'cover'> & {
-			cover?: File;
-			bible?: StoryBible;
-		}
-	): Promise<StoriesResponse<StoryBible>> {
-		const formData = new FormData();
-
-		if (data.name !== undefined) formData.append('name', data.name);
-		if (data.description !== undefined) formData.append('description', data.description);
-		if (data.user !== undefined) formData.append('user', data.user);
-		if (data.cover) formData.append('cover', data.cover);
-
-		if (data.bible) {
-			const hasBibleContent =
-				(data.bible.style?.length ?? 0) > 0 || (data.bible.worldFacts?.length ?? 0) > 0;
-			if (hasBibleContent) {
-				formData.append('bible', JSON.stringify(data.bible));
-			}
-		}
-
-		const record = await pb!.collection('stories').create(formData);
-		return record as StoriesResponse<StoryBible>;
-	}
-
-	async update(
-		id: string,
-		data: Omit<Partial<StoriesRecord<StoryBible>>, 'cover'> & {
-			cover?: File;
-			bible?: StoryBible;
-		}
-	): Promise<StoriesResponse<StoryBible>> {
-		const formData = new FormData();
-
-		if (data.name !== undefined) formData.append('name', data.name);
-		if (data.description !== undefined) formData.append('description', data.description);
-		if (data.user !== undefined) formData.append('user', data.user);
-		if (data.cover) formData.append('cover', data.cover);
-
-		if (data.bible) {
-			const hasBibleContent =
-				(data.bible.style?.length ?? 0) > 0 || (data.bible.worldFacts?.length ?? 0) > 0;
-			if (hasBibleContent) {
-				formData.append('bible', JSON.stringify(data.bible));
-			}
-		}
-
-		const record = await pb!.collection('stories').update(id, formData);
-		return record as StoriesResponse<StoryBible>;
 	}
 
 	async subscribe() {

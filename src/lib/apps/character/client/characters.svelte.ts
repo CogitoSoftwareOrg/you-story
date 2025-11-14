@@ -1,5 +1,7 @@
-import { pb, type CharactersResponse, type CharactersRecord } from '$lib';
+import { pb, type CharactersResponse } from '$lib';
 import pchelImage from '$lib/shared/assets/images/pchel.png';
+
+import type { CreateCharacterData } from './charactersApi';
 
 class CharactersStore {
 	_characters: CharactersResponse[] = $state([]);
@@ -13,7 +15,8 @@ class CharactersStore {
 		return pb?.files.getURL(character, character.avatar) || pchelImage;
 	}
 
-	addCharacter(tempId: string, data: Omit<Partial<CharactersRecord>, 'avatar'>) {
+	addOptimisticCharacter(data: Omit<CreateCharacterData, 'avatar'>) {
+		const tempId = `temp-${Date.now()}`;
 		const character = {
 			id: tempId,
 			...data,
@@ -21,41 +24,6 @@ class CharactersStore {
 			updated: new Date().toISOString()
 		} as CharactersResponse;
 		this._characters.unshift(character);
-	}
-
-	async create(
-		data: Omit<Partial<CharactersRecord>, 'avatar'> & { avatar?: File }
-	): Promise<CharactersResponse> {
-		const formData = new FormData();
-		if (data.name) formData.append('name', data.name);
-		if (data.description) formData.append('description', data.description);
-		if (data.age !== undefined) formData.append('age', String(data.age));
-		if (data.avatar) formData.append('avatar', data.avatar);
-		if (data.user) formData.append('user', data.user);
-
-		const record = await pb!.collection('characters').create(formData);
-		return record as CharactersResponse;
-	}
-
-	async update(
-		id: string,
-		data: Omit<Partial<CharactersRecord>, 'avatar'> & { avatar?: File }
-	): Promise<CharactersResponse> {
-		const formData = new FormData();
-		if (data.name !== undefined) formData.append('name', data.name);
-		if (data.description !== undefined) formData.append('description', data.description);
-		if (data.age !== undefined) formData.append('age', String(data.age));
-		if (data.avatar) formData.append('avatar', data.avatar);
-
-		const record = await pb!.collection('characters').update(id, formData);
-		return record as CharactersResponse;
-	}
-
-	async archive(id: string) {
-		const record = await pb!.collection('characters').update(id, {
-			archived: true
-		});
-		return record as CharactersResponse;
 	}
 
 	async subscribe() {
