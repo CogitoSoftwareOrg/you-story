@@ -58,6 +58,7 @@
 		"lucide-svelte": "^0.553.0",
 		"luxon": "^3.7.2",
 		"marked": "^17.0.0",
+		"nanoid": "^5.1.6",
 		"openai": "^6.9.0",
 		"pocketbase": "^0.26.3",
 		"tiktoken": "^1.0.22",

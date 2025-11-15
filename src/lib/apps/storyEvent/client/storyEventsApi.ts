@@ -14,6 +14,7 @@ class StoryEventsApi {
 		formData.append('order', String(data.order));
 		formData.append('name', data.name);
 
+		// if (data.id) formData.append('id', data.id);
 		if (prevEventId) formData.append('prev', prevEventId);
 
 		if (data.description !== undefined) formData.append('description', data.description);
@@ -23,18 +24,19 @@ class StoryEventsApi {
 			formData.append('characters', characterId);
 		}
 
+		const record = await pb.collection(Collections.StoryEvents).create(formData);
+
 		const batch = pb.createBatch();
 		if (prevEventId)
 			batch.collection(Collections.StoryEvents).update(prevEventId, {
-				next: data.id
+				next: record.id
 			});
 
 		if (nextEventId)
 			batch.collection(Collections.StoryEvents).update(nextEventId, {
-				prev: data.id
+				prev: record.id
 			});
 
-		batch.collection(Collections.StoryEvents).create(formData);
 		const results = await batch.send();
 
 		return results.at(-1);

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+
 	import { storiesStore, StoryHeader, StoryForm, storiesApi } from '$lib/apps/story/client';
 	import {
 		storyEventsStore,
@@ -10,8 +11,8 @@
 	} from '$lib/apps/storyEvent/client';
 	import { Button } from '$lib/shared/ui';
 	import { Save, ExternalLink, X } from 'lucide-svelte';
+	import { nanoid } from '$lib/shared';
 	import type { StoryBible } from '$lib/apps/story/core/models';
-
 	const storyId = $derived(page.params.storyId);
 	const story = $derived(storiesStore.stories.find((s) => s.id === storyId));
 
@@ -210,11 +211,24 @@
 				if (!storyId) return;
 
 				const prevOrder = prevEventForNew ? (prevEventForNew.order ?? 0) : 0;
-				const nextOrder = nextEventForNew ? (nextEventForNew.order ?? 0) : Infinity;
-				const order = nextOrder && prevOrder ? (prevOrder + nextOrder) / 2 : prevOrder + 1;
+				const nextOrder = nextEventForNew ? (nextEventForNew.order ?? 0) : null;
+
+				let order: number;
+				if (prevEventForNew && nextEventForNew && nextOrder !== null) {
+					order = (prevOrder + nextOrder) / 2;
+				} else if (prevEventForNew) {
+					order = prevOrder + 1;
+				} else if (nextEventForNew && nextOrder !== null) {
+					order = nextOrder > 0 ? nextOrder - 1 : 0;
+				} else {
+					order = 0;
+				}
+
+				const id = nanoid();
 
 				await storyEventsApi.create(
 					{
+						id,
 						story: storyId,
 						name: eventName,
 						description: eventDescription,
@@ -268,18 +282,20 @@
 	);
 </script>
 
-<div class="blok h-[calc(100vh-4rem)] gap-6 p-6 md:flex">
+<div class="flex h-[calc(100vh-4rem)] flex-col gap-4 p-3 md:flex-row md:gap-6 md:p-6">
 	<!-- Left Side: Story Info + Events Timeline -->
-	<div class="flex w-96 flex-2 flex-col gap-6">
+	<div class="flex w-full flex-col gap-4 md:w-96 md:gap-6">
 		<!-- Story Header -->
-		<div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm">
+		<div class="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm md:p-6">
 			{#if story}
 				<StoryHeader {story} onclick={handleCloseEventPreview} />
 			{/if}
 		</div>
 
 		<!-- Events Timeline -->
-		<div class="flex-1 overflow-hidden rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm">
+		<div
+			class="flex-1 overflow-hidden rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm md:p-6"
+		>
 			{#if storyId}
 				<StoryEventsTimeline
 					{storyId}
@@ -294,11 +310,13 @@
 
 	<!-- Right Side: Editable Form -->
 	<div
-		class="flex flex-2 flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
+		class="flex w-full flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm md:flex-2"
 	>
 		<!-- Form Header -->
-		<div class="flex items-center justify-between border-b border-base-300 p-6">
-			<h2 class="text-xl font-semibold text-base-content">
+		<div
+			class="flex flex-col gap-3 border-b border-base-300 p-4 md:flex-row md:items-center md:justify-between md:p-6"
+		>
+			<h2 class="text-lg font-semibold text-base-content md:text-xl">
 				{#if isStoryMode}
 					Story Details
 				{:else if isCreatingNew}
@@ -307,15 +325,22 @@
 					Event Preview
 				{/if}
 			</h2>
-			<div class="flex items-center gap-2">
+			<div class="flex flex-wrap items-center gap-2">
 				{#if isEventMode}
 					<Button onclick={handleCloseEventPreview} size="md" style="solid" circle>
-						<X class="size-6" />
+						<X class="size-5 md:size-6" />
 					</Button>
 					{#if selectedEventId && !isCreatingNew}
-						<Button onclick={handleGoToEvent} size="md" style="solid" color="primary">
+						<Button
+							onclick={handleGoToEvent}
+							size="md"
+							style="solid"
+							color="primary"
+							class="flex-1 md:flex-initial"
+						>
 							<ExternalLink class="size-4" />
-							<span>Open Event</span>
+							<span class="hidden sm:inline">Open Event</span>
+							<span class="sm:hidden">Open</span>
 						</Button>
 					{/if}
 				{/if}
@@ -325,6 +350,7 @@
 						size="md"
 						color="primary"
 						disabled={isStoryMode ? isSavingStory : isSavingEvent}
+						class="flex-1 md:flex-initial"
 					>
 						{#if isStoryMode ? isSavingStory : isSavingEvent}
 							<span class="loading loading-sm loading-spinner"></span>
@@ -338,7 +364,7 @@
 		</div>
 
 		<!-- Form Content -->
-		<div class="flex-1 overflow-y-auto p-6">
+		<div class="flex-1 overflow-y-auto p-4 md:p-6">
 			{#if isStoryMode}
 				<!-- Story Form -->
 				<StoryForm
@@ -361,8 +387,8 @@
 					bind:isDirty={isEventDirty}
 				/>
 				{#if isCreatingNew}
-					<div class="mt-4 rounded-lg border border-info bg-info/10 p-4">
-						<p class="text-sm text-info">
+					<div class="mt-4 rounded-lg border border-info bg-info/10 p-3 md:p-4">
+						<p class="text-xs text-info md:text-sm">
 							Creating new event
 							{#if prevEventForNew}
 								after <strong>{prevEventForNew.name || 'Unnamed Event'}</strong>
