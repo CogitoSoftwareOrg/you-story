@@ -16,9 +16,17 @@
 		msg: MessagesResponse;
 		sender: Sender;
 		showHeader?: boolean;
+		charSeq?: boolean;
 	}
 
-	const { msg, incoming, class: className = '', sender, showHeader = true }: Props = $props();
+	const {
+		msg,
+		incoming,
+		class: className = '',
+		sender,
+		showHeader = true,
+		charSeq = false
+	}: Props = $props();
 
 	// TIME
 	const utcTs = DateTime.fromFormat(msg.created || '', "yyyy-MM-dd HH:mm:ss.SSS'Z'", {
@@ -43,21 +51,27 @@
 	<div class={['chat', incoming ? 'chat-start' : 'chat-end items-end']}>
 		{#if showHeader}
 			<div class="avatar chat-image">
-				<div class="size-10 overflow-hidden rounded-full">
-					<img alt={msg.role} src={sender.avatar} class="h-full w-full object-cover" />
-				</div>
-			</div>
-
-			<div class="chat-header flex items-center space-x-2">
-				<span class="text-sm font-semibold"
-					>{!incoming ? `You (${sender?.name || 'World'})` : sender?.name || 'World'}</span
-				>
-				{#if formattedTime}
-					<time datetime={msg.created} class="text-xs opacity-50">
-						{formattedTime}
-					</time>
+				{#if charSeq}
+					<div class="size-10 overflow-hidden rounded-full">
+						<img alt={msg.role} src={sender.avatar} class="h-full w-full object-cover" />
+					</div>
+				{:else}
+					<span class="size-10 text-sm font-semibold"></span>
 				{/if}
 			</div>
+
+			{#if !charSeq}
+				<div class="chat-header flex items-center space-x-2">
+					<span class="text-sm font-semibold"
+						>{!incoming ? `You (${sender?.name || 'World'})` : sender?.name || 'World'}</span
+					>
+					{#if formattedTime}
+						<time datetime={msg.created} class="text-xs opacity-50">
+							{formattedTime}
+						</time>
+					{/if}
+				</div>
+			{/if}
 		{/if}
 
 		<div

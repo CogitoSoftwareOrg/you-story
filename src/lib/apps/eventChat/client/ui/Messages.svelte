@@ -47,11 +47,12 @@
 				<p class="mb-3 text-lg font-medium text-base-content/70">No messages yet, waiting...</p>
 			</div>
 		{:else}
-			{#each messages as msg (msg)}
+			{#each messages as msg, index (msg.id)}
 				{@const incoming = msg.role !== 'user'}
 				{@const sender = senders.find((s) => s.id === msg.character) || senders.at(-1)!}
 				<Message
-					class={['max-w-7/8', !incoming && 'ml-auto']}
+					charSeq={index > 0 && messages.at(index + 1)?.character !== msg.character}
+					class={['w-full sm:max-w-7/8', !incoming && 'ml-auto']}
 					{msg}
 					{incoming}
 					{sender}
