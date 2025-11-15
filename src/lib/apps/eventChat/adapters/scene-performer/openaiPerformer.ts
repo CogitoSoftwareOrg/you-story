@@ -27,6 +27,8 @@ class OpenAIScenePerformer implements ScenePerformer {
 		const messages = [...preMessages];
 
 		const prevSteps = plan.steps.slice(0, -1);
+		messages.push(...this.postBuildMessages(chat));
+
 		if (prevSteps.length > 0) {
 			messages.push({
 				role: 'system',
@@ -51,8 +53,6 @@ class OpenAIScenePerformer implements ScenePerformer {
 		} else if (lastStep?.type === 'character-speech') {
 			messages.push({ role: 'system', content: PERFORM_SPEECH_PROMPT });
 		}
-
-		messages.push(...this.postBuildMessages(chat));
 
 		const grokLf = observeOpenAI(grok);
 
@@ -93,10 +93,11 @@ class OpenAIScenePerformer implements ScenePerformer {
 		if (chatMessages.length > 0) messages.push({ role: 'system', content: 'Chat history:\n' });
 		for (const msg of chatMessages) {
 			const role: 'user' | 'assistant' = msg.role === 'user' ? 'user' : 'assistant';
+
+			// ${msg.expand?.character?.name || ''} (${msg.metadata?.step?.type || ''}):
 			messages.push({
 				role,
 				content: `
-${msg.expand?.character?.name || ''} (${msg.metadata?.step?.type || ''}): 
 ${msg.content}
 				`
 			});

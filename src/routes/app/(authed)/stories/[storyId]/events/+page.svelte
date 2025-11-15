@@ -207,11 +207,11 @@
 		try {
 			if (isCreatingNew) {
 				// Create new event
-				if (!storyId || !prevEventForNew?.id || !nextEventForNew?.id) return;
+				if (!storyId) return;
 
 				const prevOrder = prevEventForNew ? (prevEventForNew.order ?? 0) : 0;
 				const nextOrder = nextEventForNew ? (nextEventForNew.order ?? 0) : Infinity;
-				const order = (prevOrder + nextOrder) / 2;
+				const order = nextOrder && prevOrder ? (prevOrder + nextOrder) / 2 : prevOrder + 1;
 
 				await storyEventsApi.create(
 					{
@@ -221,8 +221,8 @@
 						characters: eventCharacters,
 						order
 					},
-					prevEventForNew.id,
-					nextEventForNew.id
+					prevEventForNew?.id,
+					nextEventForNew?.id
 				);
 
 				// Reset state after creation

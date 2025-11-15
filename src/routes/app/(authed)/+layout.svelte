@@ -113,7 +113,7 @@
 			</div>
 
 			<!-- Navigation -->
-			<nav class="flex-1 p-2" class:overflow-y-auto={sidebarOpen}>
+			<nav class="flex-1 p-1" class:overflow-y-auto={sidebarOpen}>
 				<ul class="menu w-full gap-2">
 					{#each navItems as item}
 						{@const Icon = item.icon}
