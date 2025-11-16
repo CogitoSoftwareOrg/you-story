@@ -25,7 +25,7 @@
 					<div class="hidden md:flex md:items-center md:gap-6">
 						<div class="flex items-center gap-3">
 							<ThemeController />
-							<a href="/app/auth" class="btn btn-primary"> Get Started </a>
+							<a href="/app/auth" class="btn btn-primary"> Get Started Free </a>
 						</div>
 					</div>
 

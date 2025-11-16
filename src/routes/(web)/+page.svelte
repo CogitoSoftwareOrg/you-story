@@ -27,15 +27,15 @@
 			<div class="mx-auto max-w-4xl space-y-8">
 				<!-- Main heading -->
 				<h1 class="text-5xl leading-tight font-bold text-base-content sm:text-6xl lg:text-7xl">
-					Maximum Pleasure
+					Live Your Best Fantasies
 					<br />
-					<span class="text-primary">Through Imagination</span>
+					<span class="text-primary">with AI Characters</span>
 				</h1>
 
 				<!-- Subheading -->
 				<p class="mx-auto max-w-2xl text-xl leading-relaxed text-base-content/70 sm:text-2xl">
-					Immerse yourself in deeply personal, vivid stories crafted by your imagination. Experience
-					unforgettable moments of romance and connection that feel completely real.
+					Create immersive stories with any character you can imagine. Experience deep, engaging
+					narratives powered by advanced AI technology.
 				</p>
 
 				<!-- CTA Buttons -->
@@ -105,11 +105,11 @@
 		<div class="container mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="mb-16 text-center">
 				<h2 class="mb-4 text-4xl font-bold text-base-content sm:text-5xl">
-					Immerse Yourself in Your Desires
+					Create Immersive Stories
 				</h2>
 				<p class="mx-auto max-w-2xl text-xl text-base-content/70">
-					Craft deeply immersive narratives that bring your wildest fantasies to life. Every detail,
-					every moment, every sensation—designed to maximize your pleasure and satisfaction.
+					Experience deep, engaging narratives powered by advanced AI technology. Bring any
+					character you can imagine to life in vivid, compelling stories.
 				</p>
 			</div>
 
@@ -120,10 +120,10 @@
 						<div class="mb-4 w-fit rounded-lg bg-primary/10 p-4">
 							<Users class="h-8 w-8 text-primary" />
 						</div>
-						<h3 class="mb-3 text-2xl font-bold text-base-content">Vivid Characters</h3>
+						<h3 class="mb-3 text-2xl font-bold text-base-content">Any Character You Imagine</h3>
 						<p class="text-lg leading-relaxed text-base-content/70">
-							Bring characters to life with rich personalities and compelling traits. Experience
-							deep connections that feel authentic and intensely satisfying.
+							Create and interact with any character you can imagine. Rich personalities and
+							compelling traits bring your stories to life with authentic, engaging interactions.
 						</p>
 					</div>
 				</div>
@@ -134,10 +134,10 @@
 						<div class="mb-4 w-fit rounded-lg bg-secondary/10 p-4">
 							<Calendar class="h-8 w-8 text-secondary" />
 						</div>
-						<h3 class="mb-3 text-2xl font-bold text-base-content">Intense Moments</h3>
+						<h3 class="mb-3 text-2xl font-bold text-base-content">Engaging Narratives</h3>
 						<p class="text-lg leading-relaxed text-base-content/70">
-							Craft every moment with vivid detail and emotional depth. Each scene is designed to
-							maximize immersion and bring your fantasies to life.
+							Experience deep, engaging narratives crafted with advanced AI. Every moment is
+							designed to immerse you in vivid, compelling stories that feel completely real.
 						</p>
 					</div>
 				</div>
@@ -148,11 +148,10 @@
 						<div class="mb-4 w-fit rounded-lg bg-accent/10 p-4">
 							<BookOpen class="h-8 w-8 text-accent" />
 						</div>
-						<h3 class="mb-3 text-2xl font-bold text-base-content">Complete Immersion</h3>
+						<h3 class="mb-3 text-2xl font-bold text-base-content">Advanced AI Technology</h3>
 						<p class="text-lg leading-relaxed text-base-content/70">
-							Weave everything together into captivating narratives that fully engage your senses.
-							Experience stories so immersive, you'll forget where reality ends and imagination
-							begins.
+							Powered by cutting-edge AI, your stories come alive with rich detail and emotional
+							depth. Experience narratives that adapt and evolve based on your imagination.
 						</p>
 					</div>
 				</div>
@@ -169,8 +168,8 @@
 				</div>
 				<h2 class="text-4xl font-bold text-base-content sm:text-5xl">Ready to Begin Your Story?</h2>
 				<p class="text-xl text-base-content/70">
-					Join others who are unlocking the full potential of their imagination and experiencing
-					unprecedented levels of pleasure and satisfaction.
+					Start creating immersive stories with any character you can imagine. Experience deep,
+					engaging narratives powered by advanced AI technology.
 				</p>
 				<div class="pt-4">
 					<a href="/app/auth" class="btn px-12 text-lg btn-lg btn-primary"> Get Started Free </a>
