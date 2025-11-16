@@ -54,10 +54,11 @@
 		onkeydown={handleKeydown}
 		placeholder="Type your message..."
 		class="textarea-bordered textarea flex-1 resize-none"
-		rows="3"
+		rows="2"
 		disabled={disabled || isSending}
 	></textarea>
 	<Button
+		square
 		onclick={handleSend}
 		size="md"
 		color="primary"
@@ -67,8 +68,7 @@
 		{#if isSending}
 			<span class="loading loading-sm loading-spinner"></span>
 		{:else}
-			<Send class="size-4" />
+			<Send class="size-6" />
 		{/if}
-		<span>Send</span>
 	</Button>
 </div>

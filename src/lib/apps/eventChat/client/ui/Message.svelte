@@ -51,7 +51,7 @@
 	<div class={['chat', incoming ? 'chat-start' : 'chat-end items-end']}>
 		{#if showHeader}
 			<div class="avatar chat-image">
-				{#if charSeq}
+				{#if !charSeq}
 					<div class="size-10 overflow-hidden rounded-full">
 						<img alt={msg.role} src={sender.avatar} class="h-full w-full object-cover" />
 					</div>

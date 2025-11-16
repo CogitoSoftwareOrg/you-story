@@ -1,6 +1,7 @@
-import { eventChatApp } from '$lib/apps/eventChat/app';
 import { error, type RequestHandler } from '@sveltejs/kit';
+
 import { withTracing, streamWithFlush } from '$lib/shared/server';
+import { eventChatApp } from '$lib/apps/eventChat/app';
 
 const handler: RequestHandler = async ({ params, url, locals }) => {
 	const { storyId, eventId, chatId } = params;
