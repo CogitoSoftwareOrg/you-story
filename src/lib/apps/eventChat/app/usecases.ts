@@ -5,8 +5,8 @@ import {
 	MessagesRoleOptions,
 	MessagesStatusOptions,
 	pb,
-	type EventChatExpand,
-	type EventChatsResponse,
+	type ChatExpand,
+	type ChatsResponse,
 	type MessagesResponse
 } from '$lib';
 
@@ -20,7 +20,7 @@ import {
 	type EventChatApp,
 	type Notes,
 	type SendUserMessageCmd,
-	EventChat,
+	Chat,
 	type ScenePlanner,
 	type ScenePerformer,
 	type OpenAIMessage
@@ -73,7 +73,7 @@ class EventChatAppImpl implements EventChatApp {
 	}
 
 	private createSSEStream(
-		chat: EventChat,
+		chat: Chat,
 		userMsg: MessagesResponse,
 		plan: z.infer<typeof SchemaScenePlan>,
 		preMessages: OpenAIMessage[]
@@ -221,13 +221,13 @@ class EventChatAppImpl implements EventChatApp {
 		return messages;
 	}
 
-	private async getChat(chatId: string): Promise<EventChat> {
-		const chatRes: EventChatsResponse<Notes, EventChatExpand> = await pb
+	private async getChat(chatId: string): Promise<Chat> {
+		const chatRes: ChatsResponse<Notes, ChatExpand> = await pb
 			.collection(Collections.Chats)
 			.getOne(chatId, {
 				expand: 'messages_via_chat,messages_via_chat.character,povCharacter,storyEvent'
 			});
-		const chat = EventChat.fromResponse(chatRes);
+		const chat = Chat.fromResponse(chatRes);
 		return chat;
 	}
 }

@@ -1,5 +1,13 @@
 import type { EnhanceOutput, ScenePlan, ScenePolicy } from './models';
 
+import type { OpenAIMessage } from './out';
+
+export type ActCmd = {
+	plan: ScenePlan;
+	idx: number;
+	scenePolicy: ScenePolicy;
+	history: OpenAIMessage[];
+};
 export interface SceneApp {
 	enhanceQuery(query: string): Promise<EnhanceOutput>;
 	getPolicy(enhance: EnhanceOutput): Promise<ScenePolicy>;

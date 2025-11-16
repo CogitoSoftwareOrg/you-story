@@ -1,11 +1,11 @@
-import { Collections, pb, type EventChatsResponse } from '$lib';
+import { Collections, pb, type ChatsResponse } from '$lib';
 
 class EventChatsStore {
-	_eventChats: EventChatsResponse[] = $state([]);
+	_eventChats: ChatsResponse[] = $state([]);
 
 	eventChats = $derived(this._eventChats);
 
-	setEventChats(eventChats: EventChatsResponse[]) {
+	setEventChats(eventChats: ChatsResponse[]) {
 		this._eventChats = eventChats;
 	}
 

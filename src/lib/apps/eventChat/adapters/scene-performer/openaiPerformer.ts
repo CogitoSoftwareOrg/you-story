@@ -5,7 +5,7 @@ import { grok, LLMS } from '$lib/shared/server';
 import type { MessageExpand, MessagesResponse } from '$lib/shared';
 
 import type {
-	EventChat,
+	Chat,
 	MessageChunk,
 	ScenePerformer,
 	OpenAIMessage,
@@ -18,7 +18,7 @@ export const SCENE_PERFORMER_MODEL = LLMS.GROK_4_FAST_NON_REASONING;
 
 class OpenAIScenePerformer implements ScenePerformer {
 	perform(
-		chat: EventChat,
+		chat: Chat,
 		plan: z.infer<typeof SchemaScenePlan>,
 		userMsg: MessagesResponse,
 		aiMsg: MessagesResponse,
@@ -81,7 +81,7 @@ class OpenAIScenePerformer implements ScenePerformer {
 		});
 	}
 
-	private postBuildMessages(chat: EventChat): OpenAIMessage[] {
+	private postBuildMessages(chat: Chat): OpenAIMessage[] {
 		const messages: OpenAIMessage[] = [];
 
 		const notes = chat.data.notes || [];

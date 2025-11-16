@@ -1,10 +1,10 @@
-import { pb, type SubsResponse } from '$lib';
+import { Collections, pb, type SubsResponse } from '$lib';
 
 class SubStore {
 	sub: SubsResponse | null = $state(null);
 
 	async subscribe(subId: string) {
-		return pb!.collection('subs').subscribe(subId, (e) => {
+		return pb!.collection(Collections.Subs).subscribe(subId, (e) => {
 			const sub = e.record;
 			switch (e.action) {
 				case 'update':
@@ -15,7 +15,7 @@ class SubStore {
 	}
 
 	unsubscribe() {
-		pb!.collection('subs').unsubscribe();
+		pb!.collection(Collections.Subs).unsubscribe();
 	}
 }
 

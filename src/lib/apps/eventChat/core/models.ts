@@ -1,5 +1,5 @@
 import z from 'zod';
-import type { EventChatExpand, ChatsResponse, MessageExpand, MessagesResponse } from '$lib';
+import type { ChatExpand, ChatsResponse, MessageExpand, MessagesResponse } from '$lib';
 
 export type Sender = {
 	id: string;
@@ -35,11 +35,11 @@ export type MessageMetadata = {
 
 export type Notes = string[];
 
-export class EventChat {
-	constructor(public readonly data: ChatsResponse<Notes, EventChatExpand>) {}
+export class Chat {
+	constructor(public readonly data: ChatsResponse<Notes, ChatExpand>) {}
 
-	static fromResponse(res: ChatsResponse<Notes, EventChatExpand>): EventChat {
-		return new EventChat(res);
+	static fromResponse(res: ChatsResponse<Notes, ChatExpand>): Chat {
+		return new Chat(res);
 	}
 
 	getMessages(): MessagesResponse<MessageMetadata, MessageExpand>[] {

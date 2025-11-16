@@ -26,20 +26,15 @@ class StoryEventsApi {
 
 		const record = await pb.collection(Collections.StoryEvents).create(formData);
 
-		const batch = pb.createBatch();
 		if (prevEventId)
-			batch.collection(Collections.StoryEvents).update(prevEventId, {
+			await pb.collection(Collections.StoryEvents).update(prevEventId, {
 				next: record.id
 			});
 
 		if (nextEventId)
-			batch.collection(Collections.StoryEvents).update(nextEventId, {
+			await pb.collection(Collections.StoryEvents).update(nextEventId, {
 				prev: record.id
 			});
-
-		const results = await batch.send();
-
-		return results.at(-1);
 	}
 
 	async update(id: string, data: Update<Collections.StoryEvents>) {

@@ -3,10 +3,7 @@ import {
 	type EnhanceOutput,
 	type Enhancer,
 	type SceneApp,
-	CharacterPolicyEngine,
-	scenePolicyEngine,
-	characterPolicyEngine,
-	ScenePolicyEngine,
+	getScenePolicy,
 	type ScenePolicy,
 	type ScenePlan,
 	type ScenePlanner,
@@ -15,8 +12,6 @@ import {
 
 export class SceneAppImpl implements SceneApp {
 	constructor(
-		private readonly scenePolicyEngine: ScenePolicyEngine,
-		private readonly characterPolicyEngine: CharacterPolicyEngine,
 		private readonly enhancer: Enhancer,
 		private readonly scenePlanner: ScenePlanner,
 		private readonly sceneActor: SceneActor
@@ -28,7 +23,7 @@ export class SceneAppImpl implements SceneApp {
 		return enhance;
 	}
 	async getPolicy(enhance: EnhanceOutput): Promise<ScenePolicy> {
-		const scene = this.scenePolicyEngine.get(enhance);
+		const scene = getScenePolicy(enhance);
 		return scene;
 	}
 
@@ -49,10 +44,4 @@ export class SceneAppImpl implements SceneApp {
 	}
 }
 
-export const sceneApp = new SceneAppImpl(
-	scenePolicyEngine,
-	characterPolicyEngine,
-	openaiSceneEnhancer,
-	openaiScenePlanner,
-	openaiSceneActor
-);
+export const sceneApp = new SceneAppImpl(openaiSceneEnhancer, openaiScenePlanner, openaiSceneActor);

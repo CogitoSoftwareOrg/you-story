@@ -1,0 +1,1 @@
+export { memoryApp } from './usecases';

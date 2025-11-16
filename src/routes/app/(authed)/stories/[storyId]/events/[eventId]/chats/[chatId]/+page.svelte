@@ -14,7 +14,7 @@
 	import { Button } from '$lib/shared/ui';
 	import { ArrowLeft, MessageCircle } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { type EventChatsResponse, MessagesRoleOptions } from '$lib';
+	import { type ChatsResponse, MessagesRoleOptions } from '$lib';
 	import { userStore } from '$lib/apps/user/client';
 	import { charactersStore } from '$lib/apps/character/client';
 	import { uiStore } from '$lib/shared/ui/ui.svelte';
@@ -24,7 +24,7 @@
 	const chatId = $derived(page.params.chatId);
 
 	// Chat state
-	let chat = $state<EventChatsResponse<string[]> | null>(null);
+	let chat = $state<ChatsResponse<string[]> | null>(null);
 	let isLoading = $state(true);
 
 	// Messages
@@ -57,7 +57,7 @@
 
 		try {
 			const loadedChat = await eventChatsStore.getById(chatId);
-			chat = loadedChat as EventChatsResponse<string[]>;
+			chat = loadedChat as ChatsResponse<string[]>;
 		} catch (error) {
 			console.error('Failed to load chat:', error);
 		} finally {

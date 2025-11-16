@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { EventChatsResponse } from '$lib';
+	import type { ChatsResponse } from '$lib';
 	import { MessageCircle, CheckCircle, Edit3 } from 'lucide-svelte';
 
 	interface Props {
-		chat: EventChatsResponse;
+		chat: ChatsResponse;
 		isActive?: boolean;
 		onclick?: () => void;
 	}

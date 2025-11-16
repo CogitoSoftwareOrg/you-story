@@ -23,7 +23,7 @@ export type MessageExpand =
 	  }
 	| undefined;
 
-export type EventChatExpand =
+export type ChatExpand =
 	| {
 			messages_via_chat: MessagesResponse<unknown, MessageExpand>[] | undefined;
 			povCharacter: CharactersResponse | undefined;

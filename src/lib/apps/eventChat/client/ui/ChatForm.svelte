@@ -1,35 +1,35 @@
 <script lang="ts">
 	import { charactersStore } from '$lib/apps/character/client';
-	import { EventChatsCommitModeOptions, EventChatsTypeOptions } from '$lib';
+	import { ChatsCommitModeOptions, ChatsTypeOptions } from '$lib';
 
 	interface Props {
 		povCharacter?: string;
-		commitMode?: EventChatsCommitModeOptions;
-		type?: EventChatsTypeOptions;
+		commitMode?: ChatsCommitModeOptions;
+		type?: ChatsTypeOptions;
 		availableCharacters?: string[];
 		disabled?: boolean;
 	}
 
 	let {
 		povCharacter = $bindable(''),
-		commitMode = $bindable<EventChatsCommitModeOptions>(EventChatsCommitModeOptions.autoCommit),
-		type = $bindable<EventChatsTypeOptions>(EventChatsTypeOptions.story),
+		commitMode = $bindable<ChatsCommitModeOptions>(ChatsCommitModeOptions.autoCommit),
+		type = $bindable<ChatsTypeOptions>(ChatsTypeOptions.story),
 		availableCharacters = [],
 		disabled = false
 	}: Props = $props();
 
 	const typeOptions: {
-		value: EventChatsTypeOptions;
+		value: ChatsTypeOptions;
 		label: string;
 		description: string;
 	}[] = [
 		{
-			value: EventChatsTypeOptions.story,
+			value: ChatsTypeOptions.story,
 			label: 'Story',
 			description: 'User sets the vibe and narrative direction'
 		},
 		{
-			value: EventChatsTypeOptions.roleplay,
+			value: ChatsTypeOptions.roleplay,
 			label: 'Roleplay',
 			description: 'Character roleplay in the scene'
 		}
@@ -66,7 +66,7 @@
 	</div> -->
 
 	<!-- POV Character - Required -->
-	{#if type === EventChatsTypeOptions.roleplay}
+	{#if type === ChatsTypeOptions.roleplay}
 		<div class="form-control">
 			<label class="label" for={povCharacterId}>
 				<span class="label-text font-semibold">POV Character</span>

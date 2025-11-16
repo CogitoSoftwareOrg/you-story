@@ -3,11 +3,11 @@
 	import { storyEventsStore } from '$lib/apps/storyEvent/client';
 	import { eventChatsApi } from '../eventChatsApi';
 	import { Plus, X } from 'lucide-svelte';
-	import type { EventChatsResponse } from '$lib';
+	import type { ChatsResponse } from '$lib';
 	import { onMount } from 'svelte';
 
 	interface Props {
-		chat: EventChatsResponse<string[]>;
+		chat: ChatsResponse<string[]>;
 	}
 
 	const { chat }: Props = $props();
