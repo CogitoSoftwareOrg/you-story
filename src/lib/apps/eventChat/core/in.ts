@@ -9,5 +9,5 @@ export interface SendUserMessageCmd {
 }
 
 export interface EventChatApp {
-	sendUserMessage(cmd: SendUserMessageCmd): Promise<ReadableStream>;
+	generate(cmd: SendUserMessageCmd): Promise<ReadableStream>;
 }

@@ -10,7 +10,7 @@ const handler: RequestHandler = async ({ params, url, locals }) => {
 	if (!locals.user) throw error(401, 'Unauthorized');
 	if (!storyId || !eventId || !chatId) throw error(400, 'Missing required parameters');
 
-	const stream = await eventChatApp.sendUserMessage({
+	const stream = await eventChatApp.generate({
 		user: locals.user,
 		storyId,
 		eventId,

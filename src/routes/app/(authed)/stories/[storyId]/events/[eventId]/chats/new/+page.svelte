@@ -5,23 +5,21 @@
 	import { eventChatsStore, ChatForm, eventChatsApi } from '$lib/apps/eventChat/client';
 	import { Button } from '$lib/shared/ui';
 	import { ArrowLeft, Rocket } from 'lucide-svelte';
-	import {
-		EventChatsCommitModeOptions,
-		EventChatsStatusOptions,
-		EventChatsTypeOptions
-	} from '$lib';
+	import { ChatsCommitModeOptions, ChatsStatusOptions, ChatsTypeOptions } from '$lib';
+	import { userStore } from '$lib/apps/user/client';
 
+	const user = $derived(userStore.user);
 	const storyId = $derived(page.params.storyId);
 	const eventId = $derived(page.params.eventId);
 	const event = $derived(storyEventsStore.storyEvents.find((e) => e.id === eventId));
 
 	// Form state
-	let commitMode = $derived<EventChatsCommitModeOptions>(
+	let commitMode = $derived<ChatsCommitModeOptions>(
 		eventChatsStore.eventChats.length > 0
-			? EventChatsCommitModeOptions.noncanonical
-			: EventChatsCommitModeOptions.autoCommit
+			? ChatsCommitModeOptions.noncanonical
+			: ChatsCommitModeOptions.autoCommit
 	);
-	let type = $state<EventChatsTypeOptions>(EventChatsTypeOptions.roleplay);
+	let type = $state<ChatsTypeOptions>(ChatsTypeOptions.roleplay);
 	let povCharacter = $state('');
 	let isCreating = $state(false);
 
@@ -32,7 +30,7 @@
 	}
 
 	async function handleStartChat() {
-		if (!canCreate || !eventId || isCreating) return;
+		if (!canCreate || !eventId || isCreating || !user) return;
 
 		isCreating = true;
 
@@ -42,7 +40,8 @@
 				povCharacter,
 				commitMode,
 				type,
-				status: EventChatsStatusOptions.inProgress
+				user: user.id,
+				status: ChatsStatusOptions.inProgress
 			});
 
 			// Redirect to the chat page

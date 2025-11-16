@@ -36,7 +36,7 @@ class EventChatAppImpl implements EventChatApp {
 		private readonly scenePerformer: ScenePerformer
 	) {}
 
-	async sendUserMessage(cmd: SendUserMessageCmd): Promise<ReadableStream> {
+	async generate(cmd: SendUserMessageCmd): Promise<ReadableStream> {
 		const story = await this.storyApp.getStory(cmd.storyId);
 		const storyEvent = await this.storyEventApp.get(cmd.eventId);
 
@@ -223,7 +223,7 @@ class EventChatAppImpl implements EventChatApp {
 
 	private async getChat(chatId: string): Promise<EventChat> {
 		const chatRes: EventChatsResponse<Notes, EventChatExpand> = await pb
-			.collection(Collections.EventChats)
+			.collection(Collections.Chats)
 			.getOne(chatId, {
 				expand: 'messages_via_chat,messages_via_chat.character,povCharacter,storyEvent'
 			});

@@ -13,8 +13,9 @@ export enum Collections {
 	Superusers = "_superusers",
 	CanonicalPatches = "canonicalPatches",
 	Characters = "characters",
+	Chats = "chats",
 	DraftPatches = "draftPatches",
-	EventChats = "eventChats",
+	Feedbacks = "feedbacks",
 	Messages = "messages",
 	Stories = "stories",
 	StoryEvents = "storyEvents",
@@ -129,6 +130,36 @@ export type CharactersRecord = {
 	user?: RecordIdString
 }
 
+export enum ChatsCommitModeOptions {
+	"noncanonical" = "noncanonical",
+	"proposeDiffs" = "proposeDiffs",
+	"autoCommit" = "autoCommit",
+}
+
+export enum ChatsStatusOptions {
+	"inProgress" = "inProgress",
+	"fixed" = "fixed",
+	"draft" = "draft",
+}
+
+export enum ChatsTypeOptions {
+	"story" = "story",
+	"roleplay" = "roleplay",
+	"friend" = "friend",
+}
+export type ChatsRecord<Tnotes = unknown> = {
+	commitMode?: ChatsCommitModeOptions
+	created: IsoAutoDateString
+	id: string
+	notes?: null | Tnotes
+	povCharacter?: RecordIdString
+	status?: ChatsStatusOptions
+	storyEvent?: RecordIdString
+	type?: ChatsTypeOptions
+	updated: IsoAutoDateString
+	user?: RecordIdString
+}
+
 export enum DraftPatchesTypeOptions {
 	"character" = "character",
 	"world" = "world",
@@ -145,32 +176,17 @@ export type DraftPatchesRecord<Tpatch = unknown> = {
 	updated: IsoAutoDateString
 }
 
-export enum EventChatsCommitModeOptions {
-	"noncanonical" = "noncanonical",
-	"proposeDiffs" = "proposeDiffs",
-	"autoCommit" = "autoCommit",
+export enum FeedbacksTypeOptions {
+	"support" = "support",
+	"feature" = "feature",
 }
-
-export enum EventChatsStatusOptions {
-	"inProgress" = "inProgress",
-	"fixed" = "fixed",
-	"draft" = "draft",
-}
-
-export enum EventChatsTypeOptions {
-	"story" = "story",
-	"roleplay" = "roleplay",
-}
-export type EventChatsRecord<Tnotes = unknown> = {
-	commitMode?: EventChatsCommitModeOptions
+export type FeedbacksRecord = {
+	content?: string
 	created: IsoAutoDateString
 	id: string
-	notes?: null | Tnotes
-	povCharacter?: RecordIdString
-	status?: EventChatsStatusOptions
-	storyEvent?: RecordIdString
-	type?: EventChatsTypeOptions
+	type?: FeedbacksTypeOptions
 	updated: IsoAutoDateString
+	user?: RecordIdString
 }
 
 export enum MessagesRoleOptions {
@@ -271,8 +287,9 @@ export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemF
 export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
 export type CanonicalPatchesResponse<Tpatch = unknown, Texpand = unknown> = Required<CanonicalPatchesRecord<Tpatch>> & BaseSystemFields<Texpand>
 export type CharactersResponse<Texpand = unknown> = Required<CharactersRecord> & BaseSystemFields<Texpand>
+export type ChatsResponse<Tnotes = unknown, Texpand = unknown> = Required<ChatsRecord<Tnotes>> & BaseSystemFields<Texpand>
 export type DraftPatchesResponse<Tpatch = unknown, Texpand = unknown> = Required<DraftPatchesRecord<Tpatch>> & BaseSystemFields<Texpand>
-export type EventChatsResponse<Tnotes = unknown, Texpand = unknown> = Required<EventChatsRecord<Tnotes>> & BaseSystemFields<Texpand>
+export type FeedbacksResponse<Texpand = unknown> = Required<FeedbacksRecord> & BaseSystemFields<Texpand>
 export type MessagesResponse<Tmetadata = unknown, Texpand = unknown> = Required<MessagesRecord<Tmetadata>> & BaseSystemFields<Texpand>
 export type StoriesResponse<Tbible = unknown, Texpand = unknown> = Required<StoriesRecord<Tbible>> & BaseSystemFields<Texpand>
 export type StoryEventsResponse<Texpand = unknown> = Required<StoryEventsRecord> & BaseSystemFields<Texpand>
@@ -289,8 +306,9 @@ export type CollectionRecords = {
 	_superusers: SuperusersRecord
 	canonicalPatches: CanonicalPatchesRecord
 	characters: CharactersRecord
+	chats: ChatsRecord
 	draftPatches: DraftPatchesRecord
-	eventChats: EventChatsRecord
+	feedbacks: FeedbacksRecord
 	messages: MessagesRecord
 	stories: StoriesRecord
 	storyEvents: StoryEventsRecord
@@ -306,8 +324,9 @@ export type CollectionResponses = {
 	_superusers: SuperusersResponse
 	canonicalPatches: CanonicalPatchesResponse
 	characters: CharactersResponse
+	chats: ChatsResponse
 	draftPatches: DraftPatchesResponse
-	eventChats: EventChatsResponse
+	feedbacks: FeedbacksResponse
 	messages: MessagesResponse
 	stories: StoriesResponse
 	storyEvents: StoryEventsResponse

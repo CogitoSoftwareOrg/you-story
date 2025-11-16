@@ -14,7 +14,7 @@ class EventChatsStore {
 	}
 
 	async getById(id: string, expand?: string) {
-		return await pb.collection(Collections.EventChats).getOne(id, { expand });
+		return await pb.collection(Collections.Chats).getOne(id, { expand });
 	}
 
 	canCreateNewChat(eventId: string): boolean {
@@ -24,7 +24,7 @@ class EventChatsStore {
 	}
 
 	async subscribe() {
-		return pb.collection(Collections.EventChats).subscribe('*', (e) => {
+		return pb.collection(Collections.Chats).subscribe('*', (e) => {
 			switch (e.action) {
 				case 'create':
 					this._eventChats = this._eventChats.filter((item) => !item.id.startsWith('temp-'));
@@ -43,7 +43,7 @@ class EventChatsStore {
 	}
 
 	unsubscribe() {
-		pb.collection(Collections.EventChats).unsubscribe();
+		pb.collection(Collections.Chats).unsubscribe();
 	}
 }
 

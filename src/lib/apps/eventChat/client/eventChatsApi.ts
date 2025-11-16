@@ -6,14 +6,14 @@ import { messagesStore } from './messages.svelte.ts';
 
 class EventChatsApi {
 	// Create new chat
-	async create(dto: Create<Collections.EventChats>) {
-		const chat = await pb.collection(Collections.EventChats).create(dto);
+	async create(dto: Create<Collections.Chats>) {
+		const chat = await pb.collection(Collections.Chats).create(dto);
 		return chat;
 	}
 
 	// Update chat
-	async update(id: string, dto: Update<Collections.EventChats>) {
-		const chat = await pb.collection(Collections.EventChats).update(id, dto);
+	async update(id: string, dto: Update<Collections.Chats>) {
+		const chat = await pb.collection(Collections.Chats).update(id, dto);
 		return chat;
 	}
 
