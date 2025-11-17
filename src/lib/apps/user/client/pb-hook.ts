@@ -5,7 +5,6 @@ import { userStore } from './user.svelte';
 
 pb.authStore.onChange((token: string, record: AuthRecord) => {
 	if (record && pb!.authStore.isValid) {
-		console.log('rec', record);
 		try {
 			const user = record as UsersResponse;
 			userStore.user = user;

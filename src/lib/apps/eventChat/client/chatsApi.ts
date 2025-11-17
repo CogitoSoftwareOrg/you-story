@@ -4,7 +4,16 @@ import type { MessageChunk } from '$lib/apps/eventChat/core';
 
 import { messagesStore } from './messages.svelte.ts';
 
-class EventChatsApi {
+type SendMessageDto = {
+	type: 'character' | 'story';
+	characterId?: string;
+	storyId?: string;
+	eventId?: string;
+	content: string;
+	msg: Create<Collections.Messages>;
+};
+
+class ChatsApi {
 	// Create new chat
 	async create(dto: Create<Collections.Chats>) {
 		const chat = await pb.collection(Collections.Chats).create(dto);
@@ -17,17 +26,19 @@ class EventChatsApi {
 		return chat;
 	}
 
-	async sendMessage(storyId: string, eventId: string, dto: Create<Collections.Messages>) {
+	async sendMessage(dto: SendMessageDto) {
 		if (!dto.content) throw new Error('Content is required');
 
-		messagesStore.addOptimisticMessage(dto);
+		messagesStore.addOptimisticMessage(dto.msg);
 
-		const es = new EventSource(
-			`/api/stories/${storyId}/events/${eventId}/chats/${dto.chat}/sse?q=${encodeURIComponent(dto.content)}`,
-			{
-				withCredentials: true
-			}
-		);
+		const url =
+			dto.type === 'story'
+				? `/api/stories/${dto.storyId}/events/${dto.eventId}/chats/${dto.msg.chat}/sse?q=${encodeURIComponent(dto.content)}`
+				: `/api/characters/${dto.characterId}/chats/${dto.msg.chat}/sse?q=${encodeURIComponent(dto.content)}`;
+
+		const es = new EventSource(url, {
+			withCredentials: true
+		});
 
 		es.addEventListener('chunk', (e) => {
 			const chunk = JSON.parse(e.data) as MessageChunk;
@@ -43,4 +54,4 @@ class EventChatsApi {
 	}
 }
 
-export const eventChatsApi = new EventChatsApi();
+export const chatsApi = new ChatsApi();

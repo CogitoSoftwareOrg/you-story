@@ -3,19 +3,12 @@
 	import { afterNavigate, goto } from '$app/navigation';
 
 	import pchelImage from '$lib/shared/assets/images/pchel.png';
-	import {
-		eventChatsApi,
-		eventChatsStore,
-		messagesStore,
-		ChatController
-	} from '$lib/apps/eventChat/client';
+	import { chatsApi, chatsStore, messagesStore, ChatController } from '$lib/apps/eventChat/client';
 	import Messages from '$lib/apps/eventChat/client/ui/Messages.svelte';
 	import MessageControls from '$lib/apps/eventChat/client/ui/MessageControls.svelte';
 	import { Button } from '$lib/shared/ui';
 	import { ArrowLeft, MessageCircle } from 'lucide-svelte';
-	import { onMount } from 'svelte';
-	import { type ChatsResponse, MessagesRoleOptions } from '$lib';
-	import { userStore } from '$lib/apps/user/client';
+	import { MessagesRoleOptions } from '$lib';
 	import { charactersStore } from '$lib/apps/character/client';
 	import { uiStore } from '$lib/shared/ui/ui.svelte';
 
@@ -23,11 +16,7 @@
 	const eventId = $derived(page.params.eventId);
 	const chatId = $derived(page.params.chatId);
 
-	// Chat state
-	let chat = $state<ChatsResponse<string[]> | null>(null);
-	let isLoading = $state(true);
-
-	// Messages
+	const chat = $derived(chatsStore.chats.find((chat) => chat.id === chatId));
 	const messages = $derived(messagesStore.messages);
 
 	const chars = $derived(charactersStore.characters);
@@ -48,22 +37,6 @@
 
 		return senders;
 	});
-	// Load chat data and messages
-	onMount(async () => {
-		if (!chatId) {
-			isLoading = false;
-			return;
-		}
-
-		try {
-			const loadedChat = await eventChatsStore.getById(chatId);
-			chat = loadedChat as ChatsResponse<string[]>;
-		} catch (error) {
-			console.error('Failed to load chat:', error);
-		} finally {
-			isLoading = false;
-		}
-	});
 
 	afterNavigate(() => {
 		if (!page.params.storyId || !page.params.eventId || !page.params.chatId) return;
@@ -75,12 +48,19 @@
 	}
 
 	async function handleSendMessage(content: string) {
-		if (!chatId || !storyId || !eventId) return;
+		if (!storyId || !eventId || !chat) return;
 
-		await eventChatsApi.sendMessage(storyId, eventId, {
-			chat: chatId,
+		await chatsApi.sendMessage({
+			type: 'story',
+			storyId,
+			eventId,
 			content,
-			role: MessagesRoleOptions.user
+			msg: {
+				chat: chat.id,
+				content,
+				role: MessagesRoleOptions.user,
+				character: chat.povCharacter ?? undefined
+			}
 		});
 	}
 </script>
@@ -100,16 +80,12 @@
 
 		<!-- Form Content -->
 		<div class="flex-1 overflow-y-auto p-6">
-			{#if isLoading}
+			{#if !chat}
 				<div class="flex h-full items-center justify-center">
 					<span class="loading loading-lg loading-spinner"></span>
 				</div>
 			{:else if chat}
 				<ChatController {chat} />
-			{:else}
-				<div class="flex h-full items-center justify-center text-base-content/60">
-					Chat not found
-				</div>
 			{/if}
 		</div>
 	</div>
@@ -133,7 +109,7 @@
 
 		<!-- Chat Messages Area -->
 		<div class="flex-1 overflow-hidden">
-			{#if isLoading}
+			{#if !chat}
 				<div class="flex h-full items-center justify-center">
 					<span class="loading loading-lg loading-spinner"></span>
 				</div>
@@ -144,7 +120,7 @@
 
 		<!-- Chat Input Area -->
 		<div class="border-t border-base-300 p-4">
-			<MessageControls {messages} onSend={handleSendMessage} disabled={isLoading || !chat} />
+			<MessageControls {messages} onSend={handleSendMessage} disabled={!chat} />
 		</div>
 	</div>
 </div>

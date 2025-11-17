@@ -2,7 +2,7 @@
 	import { Plus } from 'lucide-svelte';
 
 	import { Button } from '$lib/shared/ui';
-	import { eventChatsStore } from '../eventChats.svelte';
+	import { chatsStore } from '../chats.svelte';
 	import EventChatCard from './EventChatCard.svelte';
 
 	interface Props {
@@ -14,7 +14,7 @@
 
 	let { eventId, selectedChatId = null, onChatSelect, onCreateChat }: Props = $props();
 
-	const eventChats = $derived(eventChatsStore.getEventChats(eventId));
+	const eventChats = $derived(chatsStore.getEventChats(eventId));
 </script>
 
 <div class="flex h-full flex-col gap-4">

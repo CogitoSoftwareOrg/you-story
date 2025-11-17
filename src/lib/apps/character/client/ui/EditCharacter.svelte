@@ -2,11 +2,11 @@
 	import { Upload, X } from 'lucide-svelte';
 	import type { CharactersResponse } from '$lib';
 	import { pb } from '$lib';
-	import { charactersStore } from './characters.svelte';
+	import { charactersStore } from '../characters.svelte';
 	import { Button } from '$lib/shared/ui';
 	import pchelImage from '$lib/shared/assets/images/pchel.png';
 	import { userStore } from '$lib/apps/user/client';
-	import { charactersApi } from './charactersApi';
+	import { charactersApi } from '../charactersApi';
 
 	interface Props {
 		character?: CharactersResponse | null;

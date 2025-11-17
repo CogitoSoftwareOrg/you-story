@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 
 	import { storyEventsStore } from '$lib/apps/storyEvent/client';
-	import { eventChatsStore } from '$lib/apps/eventChat/client';
+	import { chatsStore } from '$lib/apps/eventChat/client';
 	import { storiesStore } from '$lib/apps/story/client';
 
 	import Splash from '../../Splash.svelte';
@@ -12,21 +12,21 @@
 	const { storyPromise } = data;
 
 	onMount(async () => {
-		const { storyEvents, eventChats } = await storyPromise;
+		const { storyEvents, chats } = await storyPromise;
 		if (storyEvents) storyEventsStore.setStoryEvents(storyEvents);
-		if (eventChats) eventChatsStore.setEventChats(eventChats);
+		if (chats) chatsStore.setChats(chats);
 	});
 
 	$effect(() => {
 		const story = storiesStore.stories.find((story) => story.id === page.params.storyId);
 		if (story) {
 			storyEventsStore.subscribe();
-			eventChatsStore.subscribe();
+			chatsStore.subscribe();
 		}
 
 		return () => {
 			storyEventsStore.unsubscribe();
-			eventChatsStore.unsubscribe();
+			chatsStore.unsubscribe();
 		};
 	});
 </script>

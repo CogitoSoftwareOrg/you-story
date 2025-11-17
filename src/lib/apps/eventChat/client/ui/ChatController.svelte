@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { charactersStore } from '$lib/apps/character/client';
 	import { storyEventsStore } from '$lib/apps/storyEvent/client';
-	import { eventChatsApi } from '../eventChatsApi';
+	import { chatsApi } from '../chatsApi';
 	import { Plus, X } from 'lucide-svelte';
 	import type { ChatsResponse } from '$lib';
 	import { onMount } from 'svelte';
 
 	interface Props {
-		chat: ChatsResponse<string[]>;
+		chat: ChatsResponse;
 	}
 
 	const { chat }: Props = $props();
@@ -39,7 +39,7 @@
 			isSavingNotes = true;
 
 			try {
-				await eventChatsApi.update(chat.id, {
+				await chatsApi.update(chat.id, {
 					notes: notes.length > 0 ? notes : null
 				});
 			} catch (error) {
@@ -56,7 +56,7 @@
 		isSavingCharacter = true;
 
 		try {
-			await eventChatsApi.update(chat.id, {
+			await chatsApi.update(chat.id, {
 				povCharacter: selectedCharacterId ?? null
 			});
 		} catch (error) {

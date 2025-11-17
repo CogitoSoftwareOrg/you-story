@@ -5,7 +5,7 @@
 	import type { CharactersResponse } from '$lib';
 	import { Button } from '$lib/shared/ui';
 
-	import { charactersStore } from './characters.svelte';
+	import { charactersStore } from '../characters.svelte';
 	interface Props {
 		character: CharactersResponse;
 		topRightAction?: Snippet;

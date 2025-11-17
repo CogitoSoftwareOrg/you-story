@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { storyEventsStore, EventForm } from '$lib/apps/storyEvent/client';
-	import { eventChatsStore, EventChatsList } from '$lib/apps/eventChat/client';
+	import { EventChatsList } from '$lib/apps/eventChat/client';
 	import { Button } from '$lib/shared/ui';
 	import { Save, ArrowLeft } from 'lucide-svelte';
 	import { storyEventsApi } from '$lib/apps/storyEvent/client/storyEventsApi';

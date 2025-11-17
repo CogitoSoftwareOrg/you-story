@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { storyEventsStore } from '$lib/apps/storyEvent/client';
-	import { eventChatsStore, ChatForm, eventChatsApi } from '$lib/apps/eventChat/client';
+	import { chatsStore, ChatForm, chatsApi } from '$lib/apps/eventChat/client';
 	import { Button } from '$lib/shared/ui';
 	import { ArrowLeft, Rocket } from 'lucide-svelte';
 	import { ChatsCommitModeOptions, ChatsStatusOptions, ChatsTypeOptions } from '$lib';
@@ -15,7 +15,7 @@
 
 	// Form state
 	let commitMode = $derived<ChatsCommitModeOptions>(
-		eventChatsStore.eventChats.length > 0
+		chatsStore.getEventChats(eventId!).length > 0
 			? ChatsCommitModeOptions.noncanonical
 			: ChatsCommitModeOptions.autoCommit
 	);
@@ -35,12 +35,11 @@
 		isCreating = true;
 
 		try {
-			const chat = await eventChatsApi.create({
+			const chat = await chatsApi.create({
 				storyEvent: eventId,
 				povCharacter,
 				commitMode,
 				type,
-				user: user.id,
 				status: ChatsStatusOptions.inProgress
 			});
 

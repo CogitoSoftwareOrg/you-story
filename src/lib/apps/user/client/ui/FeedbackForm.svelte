@@ -19,7 +19,6 @@
 		isSubmitting = true;
 		successMessage = false;
 
-		console.log('user', user);
 		try {
 			await pb!.collection('feedbacks').create({
 				type,
