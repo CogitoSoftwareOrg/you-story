@@ -1,4 +1,11 @@
+import { encoding_for_model } from 'tiktoken';
+
 export const LLMS = {
 	GROK_4_FAST_NON_REASONING: 'grok-4-fast-non-reasoning',
 	GROK_4_FAST: 'grok-4-fast'
 } as const;
+
+export const TOKENIZERS = {
+	[LLMS.GROK_4_FAST_NON_REASONING]: encoding_for_model('gpt-4o-mini'),
+	[LLMS.GROK_4_FAST]: encoding_for_model('gpt-4o-mini')
+};

@@ -1,4 +1,4 @@
-import { observe, updateActiveTrace } from '@langfuse/tracing';
+import { observe, updateActiveTrace, propagateAttributes } from '@langfuse/tracing';
 import { langfuseSpanProcessor } from './instrumentation';
 import type { RequestHandler, RequestEvent } from '@sveltejs/kit';
 
@@ -53,12 +53,29 @@ export function withTracing(
 						)
 					: undefined;
 
-				updateActiveTrace({
-					name: options.traceName,
-					userId: traceData.userId,
-					sessionId: traceData.sessionId,
-					...(metadata && { metadata: metadata as Record<string, string> })
-				});
+				// Update trace name
+				if (options.traceName) {
+					updateActiveTrace({ name: options.traceName });
+				}
+
+				// Propagate attributes to all child observations (including observeOpenAI calls)
+				// This ensures metadata, userId, sessionId are available to all nested spans
+				const attributesToPropagate: {
+					userId?: string;
+					sessionId?: string;
+					metadata?: Record<string, string>;
+				} = {};
+
+				if (traceData.userId) attributesToPropagate.userId = traceData.userId;
+				if (traceData.sessionId) attributesToPropagate.sessionId = traceData.sessionId;
+				if (metadata) attributesToPropagate.metadata = metadata as Record<string, string>;
+
+				// Use propagateAttributes to ensure all child observations inherit these attributes
+				if (Object.keys(attributesToPropagate).length > 0) {
+					return await propagateAttributes(attributesToPropagate, async () => {
+						return handler(event);
+					});
+				}
 			} else if (options?.traceName) {
 				updateActiveTrace({ name: options.traceName });
 			}

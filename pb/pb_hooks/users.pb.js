@@ -15,7 +15,7 @@ onRecordCreate((e) => {
 		const charCol = txApp.findCollectionByNameOrId('characters');
 		const charRecord = new Record(charCol);
 		charRecord.set('user', e.record.id);
-		charRecord.set('name', e.record.get('name'));
+		charRecord.set('name', `You (${e.record.get('name')})`);
 		txApp.save(charRecord);
 	});
 

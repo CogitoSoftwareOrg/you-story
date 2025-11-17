@@ -8,6 +8,6 @@ export interface SendUserMessageCmd {
 	query: string;
 }
 
-export interface EventChatApp {
+export interface ChatApp {
 	generate(cmd: SendUserMessageCmd): Promise<ReadableStream>;
 }

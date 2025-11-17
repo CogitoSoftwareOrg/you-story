@@ -1,1 +1,1 @@
-export { eventChatApp } from './usecases';
+export { chatApp } from './usecases';

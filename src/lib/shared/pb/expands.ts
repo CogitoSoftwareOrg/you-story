@@ -1,5 +1,7 @@
+import type { Notes } from '$lib/apps/eventChat/core';
 import type {
 	CharactersResponse,
+	ChatsResponse,
 	MessagesResponse,
 	StoryEventsResponse,
 	SubsResponse
@@ -14,6 +16,7 @@ export type StoryExpand =
 export type StoryEventExpand =
 	| {
 			characters: CharactersResponse[] | undefined;
+			chats_via_storyEvent: ChatsResponse<Notes, ChatExpand>[] | undefined;
 	  }
 	| undefined;
 

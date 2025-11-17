@@ -39,7 +39,7 @@
 	<div
 		bind:this={messagesContainer}
 		{onscroll}
-		class={['flex h-full flex-col space-y-2 overflow-y-auto overscroll-contain px-4 py-1']}
+		class={['flex h-full flex-col space-y-1 overflow-y-auto overscroll-contain px-4 py-1']}
 	>
 		{#if messages.length === 0}
 			<div class="flex h-full flex-col items-center justify-center text-center">
@@ -66,8 +66,8 @@
 				<Button
 					circle
 					color="neutral"
-					size="xs"
-					class="opacity-40 hover:opacity-70"
+					size="sm"
+					class="opacity-60 hover:opacity-70"
 					onclick={() => scrollToBottom(messagesContainer)}
 				>
 					<ChevronsDown size={16} />

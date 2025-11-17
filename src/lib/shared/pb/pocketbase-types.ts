@@ -132,6 +132,7 @@ export enum ChatsTypeOptions {
 export type ChatsRecord<Tnotes = unknown> = {
 	commitMode?: ChatsCommitModeOptions
 	created: IsoAutoDateString
+	friend?: RecordIdString
 	id: string
 	notes?: null | Tnotes
 	povCharacter?: RecordIdString
@@ -139,7 +140,6 @@ export type ChatsRecord<Tnotes = unknown> = {
 	storyEvent?: RecordIdString
 	type?: ChatsTypeOptions
 	updated: IsoAutoDateString
-	user?: RecordIdString
 }
 
 export enum FeedbacksTypeOptions {

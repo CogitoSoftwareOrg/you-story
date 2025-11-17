@@ -22,6 +22,7 @@ export type StaticMemory = {
 	kind: 'static';
 	content: string;
 	tokens: number;
+	characterId?: string;
 };
 
 export type Memory = ProfileMemory | EventMemory | StaticMemory;

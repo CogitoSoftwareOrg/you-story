@@ -1,3 +1,4 @@
+import type { MemporyGetResult } from '$lib/apps/memory/core';
 import { openaiSceneEnhancer, openaiScenePlanner, openaiSceneActor } from '../adapters';
 import {
 	type EnhanceOutput,
@@ -7,7 +8,8 @@ import {
 	type ScenePolicy,
 	type ScenePlan,
 	type ScenePlanner,
-	type SceneActor
+	type SceneActor,
+	type OpenAIMessage
 } from '../core';
 
 export class SceneAppImpl implements SceneApp {
@@ -18,8 +20,8 @@ export class SceneAppImpl implements SceneApp {
 	) {}
 
 	// Prepare
-	async enhanceQuery(query: string): Promise<EnhanceOutput> {
-		const enhance = await this.enhancer.enhance(query);
+	async enhanceQuery(history: OpenAIMessage[]): Promise<EnhanceOutput> {
+		const enhance = await this.enhancer.enhance(history);
 		return enhance;
 	}
 	async getPolicy(enhance: EnhanceOutput): Promise<ScenePolicy> {
@@ -28,18 +30,32 @@ export class SceneAppImpl implements SceneApp {
 	}
 
 	// Plan
-	async plan(policy: ScenePolicy): Promise<ScenePlan> {
-		const plan = this.scenePlanner.plan(policy);
+	async plan(
+		policy: ScenePolicy,
+		mems: MemporyGetResult,
+		history: OpenAIMessage[]
+	): Promise<ScenePlan> {
+		const plan = await this.scenePlanner.plan(policy, mems, history);
 		return plan;
 	}
 
 	// Act
-	async act(plan: ScenePlan, idx: number): Promise<string> {
-		const text = await this.sceneActor.act(plan, idx);
+	async act(
+		plan: ScenePlan,
+		idx: number,
+		mems: MemporyGetResult,
+		history: OpenAIMessage[]
+	): Promise<string> {
+		const text = await this.sceneActor.act(plan, idx, mems, history);
 		return text;
 	}
-	actStream(plan: ScenePlan, idx: number): ReadableStream<string> {
-		const stream = this.sceneActor.actStream(plan, idx);
+	actStream(
+		plan: ScenePlan,
+		idx: number,
+		mems: MemporyGetResult,
+		history: OpenAIMessage[]
+	): ReadableStream<string> {
+		const stream = this.sceneActor.actStream(plan, idx, mems, history);
 		return stream;
 	}
 }

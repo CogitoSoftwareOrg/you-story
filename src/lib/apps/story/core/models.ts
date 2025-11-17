@@ -8,31 +8,45 @@ export interface StoryBible {
 export class Story {
 	constructor(
 		public readonly data: StoriesResponse<StoryBible, StoryExpand>,
-		public prompt: string
+		public staticPrompt = ''
 	) {}
 
 	getEvents() {
 		return this.data.expand?.storyEvents_via_story || [];
 	}
 
-	static fromResponse(res: StoriesResponse<StoryBible, StoryExpand>): Story {
-		const story = new Story(res, '');
+	static fromResponse(res: StoriesResponse<StoryBible, StoryExpand>, eventOrder?: number): Story {
+		const story = new Story(res);
+		story.buildStaticPrompt(eventOrder);
 		return story;
 	}
 
-	buildPrompt(lastEventOrder: number) {
-		const prevEvents = this.getEvents().filter((event) => event.order < lastEventOrder);
-		const eventPrompt = prevEvents
-			.map((event) => `Event: ${event.name}\nDescription: ${event.description}\n\n`)
-			.join('\n');
-
-		this.prompt = `
+	buildStaticPrompt(eventOrder?: number) {
+		this.staticPrompt = `
 Story: ${this.data.name}
-Description: ${this.data.description}
-Bible: ${JSON.stringify(this.data.bible)}
+
+Description:
+${this.data.description}
+
+Bible:
+Style: ${this.data.bible?.style.join('\n')}
+World Facts: ${this.data.bible?.worldFacts.join('\n')}
+`;
+		if (!eventOrder) return;
+
+		const events = this.getEvents();
+		const event = events.find((e) => e.order === eventOrder);
+		const prevEvents = events.filter((e) => e.order < eventOrder);
+
+		this.staticPrompt = `
+${this.staticPrompt}
 
 Previous Events:
-${eventPrompt || '<No previous events>'}
+${prevEvents.map((event) => `Event: ${event.name}\nDescription: ${event.description}\n\n`).join('\n')}
+
+Current Event:
+${event?.name}
+Description: ${event?.description}
 `;
 	}
 }

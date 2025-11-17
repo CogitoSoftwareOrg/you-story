@@ -1,3 +1,5 @@
+import type { MemporyGetResult } from '$lib/apps/memory/core';
+
 import type { EnhanceOutput, ScenePlan, ScenePolicy } from './models';
 
 import type { OpenAIMessage } from './out';
@@ -9,11 +11,21 @@ export type ActCmd = {
 	history: OpenAIMessage[];
 };
 export interface SceneApp {
-	enhanceQuery(query: string): Promise<EnhanceOutput>;
+	enhanceQuery(history: OpenAIMessage[]): Promise<EnhanceOutput>;
 	getPolicy(enhance: EnhanceOutput): Promise<ScenePolicy>;
 
-	plan(policy: ScenePolicy): Promise<ScenePlan>;
+	plan(policy: ScenePolicy, mems: MemporyGetResult, history: OpenAIMessage[]): Promise<ScenePlan>;
 
-	act(plan: ScenePlan, idx: number): Promise<string>;
-	actStream(plan: ScenePlan, idx: number): ReadableStream<string>;
+	act(
+		plan: ScenePlan,
+		idx: number,
+		mems: MemporyGetResult,
+		history: OpenAIMessage[]
+	): Promise<string>;
+	actStream(
+		plan: ScenePlan,
+		idx: number,
+		mems: MemporyGetResult,
+		history: OpenAIMessage[]
+	): ReadableStream<string>;
 }

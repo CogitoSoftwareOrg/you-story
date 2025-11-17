@@ -27,7 +27,6 @@
 	const { children, data } = $props();
 	const { globalPromise } = data;
 
-	const user = $derived(userStore.user);
 	const sub = $derived(subStore.sub);
 	const sidebarOpen = $derived(uiStore.globalSidebarOpen);
 
@@ -68,6 +67,8 @@
 	function isActive(path: string) {
 		return page.url.pathname === path;
 	}
+
+	const user = $derived(userStore.user);
 </script>
 
 {#await globalPromise}
@@ -249,7 +250,11 @@
 					/>
 				</a>
 			</div>
-			<a href="/app/settings" data-sveltekit-preload-data="tap" class="dock-item">
+			<a
+				href={user ? '/app/settings' : '/app/auth'}
+				data-sveltekit-preload-data="tap"
+				class="dock-item"
+			>
 				<Settings class={page.url.pathname === '/app/settings' ? 'text-primary' : 'text-neutral'} />
 			</a>
 		</footer>

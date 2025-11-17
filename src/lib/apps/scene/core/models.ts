@@ -35,10 +35,24 @@ export enum UserEmotion {
 }
 
 export const EnhanceOutputSchema = z.object({
-	interactionIntent: z.enum(Object.values(SceneIntent)),
-	userEmotion: z.enum(Object.values(UserEmotion)),
-	sceneFlowType: z.enum(Object.values(SceneFlowType)),
-	perCharacterMoodDelta: z.record(z.string(), z.enum(['increased', 'decreased', 'neutral']))
+	query: z.string().describe('Enriched, explicit version of what the user wants next.'),
+	interactionIntent: z
+		.enum(Object.values(SceneIntent))
+		.describe('Best-guess high-level intent of the upcoming scene.'),
+	userEmotion: z
+		.enum(Object.values(UserEmotion))
+		.describe("Best-guess of the user's current emotional state."),
+	sceneFlowType: z
+		.enum(Object.values(SceneFlowType))
+		.describe('Expected structural flow for the next scene.')
+	// perCharacterMoodDelta: z
+	// 	.record(
+	// 		z.string().describe('Character ID.'),
+	// 		z
+	// 			.enum(['increased', 'decreased', 'neutral'])
+	// 			.describe('Relative change of this character’s mood since last context.')
+	// 	)
+	// 	.describe('Per-character mood change inferred from the latest interaction.')
 });
 export type EnhanceOutput = z.infer<typeof EnhanceOutputSchema>;
 
@@ -131,15 +145,15 @@ export type CharacterPolicy = {
 
 // SCENE PLAN
 export const SchemaSceneStep = z.object({
-	type: z.enum(['world', 'thoughts', 'speech']).describe(
-		`
-World: update the environment, atmosphere, or overall mood.
-Thoughts: focus the scene on the character's thoughts.
-Speech: focus the scene on the character's dialogue.
-`
-	),
-	characterId: z.string().optional().nullable(),
-	description: z.string()
+	type: z
+		.enum(['world', 'thoughts', 'speech'])
+		.describe('Step type: world (environment), thoughts (inner monologue), or speech (dialogue).'),
+	characterId: z
+		.string()
+		.nullable()
+		.optional()
+		.describe('Character acting / speaking / thinking in this step, if any.'),
+	description: z.string().describe('Natural-language description of what happens in this step.')
 });
 export const SchemaScenePlan = z.object({
 	steps: z.array(SchemaSceneStep)

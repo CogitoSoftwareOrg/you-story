@@ -1,51 +1,31 @@
-import type z from 'zod';
-
 import {
 	Collections,
 	MessagesRoleOptions,
 	MessagesStatusOptions,
 	pb,
 	type ChatExpand,
-	type ChatsResponse,
-	type MessagesResponse
+	type ChatsResponse
 } from '$lib';
+import type { OpenAIMessage, SceneApp, ScenePlan } from '$lib/apps/scene/core';
+import { sceneApp } from '$lib/apps/scene/app';
+import { LLMS, TOKENIZERS } from '$lib/shared/server';
+import { memoryApp } from '$lib/apps/memory/app';
+import type { MemoryApp, MemporyGetResult } from '$lib/apps/memory/core';
 
-import { storyApp } from '$lib/apps/story/app';
-import { storyEventApp } from '$lib/apps/storyEvent/app';
+import { type ChatApp, type Notes, type SendUserMessageCmd, Chat } from '../core';
 
-import type { Story, StoryApp } from '$lib/apps/story/core';
-import type { StoryEvent, StoryEventApp } from '$lib/apps/storyEvent/core';
+const HISTORY_TOKEN_LIMIT = 2000;
+const MEMORY_TOKEN_LIMIT = 5000;
 
-import {
-	type EventChatApp,
-	type Notes,
-	type SendUserMessageCmd,
-	Chat,
-	type ScenePlanner,
-	type ScenePerformer,
-	type OpenAIMessage
-} from '../core';
-import { scenePlanner, scenePerformer } from '../adapters';
-import type { SchemaScenePlan } from '../core/models';
-
-class EventChatAppImpl implements EventChatApp {
+class ChatAppImpl implements ChatApp {
 	constructor(
-		private readonly storyApp: StoryApp,
-		private readonly storyEventApp: StoryEventApp,
-		private readonly scenePlanner: ScenePlanner,
-		private readonly scenePerformer: ScenePerformer
+		private readonly memoryApp: MemoryApp,
+		private readonly sceneApp: SceneApp
 	) {}
 
 	async generate(cmd: SendUserMessageCmd): Promise<ReadableStream> {
-		const story = await this.storyApp.getStory(cmd.storyId);
-		const storyEvent = await this.storyEventApp.get(cmd.eventId);
-
-		story.buildPrompt(storyEvent.data.order);
-
+		// Save start messages
 		const chat = await this.getChat(cmd.chatId);
-
-		const preMessages = this.buildPreMessages(story, storyEvent, chat.data.povCharacter);
-
 		const userMsg = await pb.collection(Collections.Messages).create({
 			chat: cmd.chatId,
 			content: cmd.query,
@@ -53,34 +33,64 @@ class EventChatAppImpl implements EventChatApp {
 			status: MessagesStatusOptions.final,
 			character: chat.data.povCharacter
 		});
-
 		const aiMsg = await pb.collection(Collections.Messages).create({
 			chat: chat.data.id,
 			content: '',
 			role: MessagesRoleOptions.ai,
 			status: MessagesStatusOptions.streaming
 		});
-		const planScene = await this.scenePlanner.plan(
-			chat,
-			userMsg,
-			preMessages,
-			chat.data.id,
-			cmd.user.id
-		);
+
+		// Load contexts
+		const history = this.trimMessages(chat, HISTORY_TOKEN_LIMIT);
+		history.push({
+			role: 'user',
+			content: cmd.query
+		});
+
+		const enhance = await this.sceneApp.enhanceQuery(history);
+		const policy = await this.sceneApp.getPolicy(enhance);
+
+		const npcIds = [];
+		if (chat.data.friend) {
+			npcIds.push(chat.data.friend);
+		} else {
+			npcIds.push(
+				...(chat.data.expand?.storyEvent?.characters ?? []).filter(
+					(id) => id !== chat.data.povCharacter
+				)
+			);
+		}
+
+		const memRes = await this.memoryApp.get({
+			query: enhance.query,
+			tokens: MEMORY_TOKEN_LIMIT,
+			povId: chat.data.povCharacter,
+			npcIds: npcIds,
+			chatId: chat.data.id
+		});
+
+		const scenePlan = await this.sceneApp.plan(policy, memRes, history);
+
+		await pb.collection(Collections.Messages).update(userMsg.id, {
+			metadata: {
+				scenePlan: scenePlan,
+				scenePolicy: policy,
+				enhance: enhance
+			}
+		});
 		await pb.collection(Collections.Messages).delete(aiMsg.id);
 
-		return this.createSSEStream(chat, userMsg, planScene, preMessages);
+		return this.createSSEStream(chat, scenePlan, memRes, history);
 	}
 
 	private createSSEStream(
 		chat: Chat,
-		userMsg: MessagesResponse,
-		plan: z.infer<typeof SchemaScenePlan>,
-		preMessages: OpenAIMessage[]
+		plan: ScenePlan,
+		memRes: MemporyGetResult,
+		history: OpenAIMessage[]
 	): ReadableStream {
 		const encoder = new TextEncoder();
-		const scenePerformer = this.scenePerformer;
-		const getChat = this.getChat;
+		const sceneApp = this.sceneApp;
 
 		return new ReadableStream({
 			async start(controller) {
@@ -90,58 +100,31 @@ class EventChatAppImpl implements EventChatApp {
 				};
 
 				try {
-					const processedSteps: z.infer<typeof SchemaScenePlan>['steps'] = [];
-
 					for (let i = 0; i < plan.steps.length; i++) {
-						const newChat = await getChat(chat.data.id);
-
-						const step = plan.steps[i];
-
 						const aiMsg = await pb.collection(Collections.Messages).create({
 							chat: chat.data.id,
 							content: '',
 							role: MessagesRoleOptions.ai,
 							status: MessagesStatusOptions.streaming,
-							character: step.characterId,
+							character: plan.steps[i].characterId,
 							metadata: {
-								step
+								step: plan.steps[i]
 							}
 						});
-
-						sendEvent(
-							'step_start',
-							JSON.stringify({
-								stepIndex: i,
-								msgId: aiMsg.id,
-								step: step
-							})
-						);
-
-						const prevSteps: z.infer<typeof SchemaScenePlan> = {
-							steps: [...processedSteps, step]
-						};
-
-						const stepStream = scenePerformer.perform(
-							newChat,
-							prevSteps,
-							userMsg,
-							aiMsg,
-							preMessages
-						);
+						const stepStream = sceneApp.actStream(plan, i, memRes, history);
 
 						let accumulatedText = '';
 						const reader = stepStream.getReader();
-
 						try {
 							while (true) {
 								const { done, value } = await reader.read();
 								if (done) break;
 
-								accumulatedText += value.text;
+								accumulatedText += value;
 								sendEvent(
 									'chunk',
 									JSON.stringify({
-										text: value.text,
+										text: value,
 										msgId: aiMsg.id,
 										stepIndex: i
 									})
@@ -152,16 +135,10 @@ class EventChatAppImpl implements EventChatApp {
 								status: MessagesStatusOptions.final,
 								content: accumulatedText
 							});
-
-							processedSteps.push(step);
-
-							sendEvent(
-								'step_done',
-								JSON.stringify({
-									stepIndex: i,
-									msgId: aiMsg.id
-								})
-							);
+							history.push({
+								role: 'assistant',
+								content: accumulatedText
+							});
 						} catch (error) {
 							await pb.collection(Collections.Messages).update(aiMsg.id, {
 								status: MessagesStatusOptions.final,
@@ -171,7 +148,7 @@ class EventChatAppImpl implements EventChatApp {
 								}
 							});
 							sendEvent(
-								'step_error',
+								'error',
 								JSON.stringify({
 									stepIndex: i,
 									msgId: aiMsg.id,
@@ -194,33 +171,6 @@ class EventChatAppImpl implements EventChatApp {
 		});
 	}
 
-	private buildPreMessages(
-		story: Story,
-		event: StoryEvent,
-		povCharacterId: string
-	): OpenAIMessage[] {
-		const messages: OpenAIMessage[] = [];
-
-		messages.push({ role: 'system', content: story.prompt });
-		messages.push({ role: 'system', content: event.prompt });
-
-		const chars = event.getCharacters().filter((char) => char.id !== povCharacterId);
-		if (chars.length > 0) {
-			messages.push({
-				role: 'system',
-				content:
-					'Available characters:\n' +
-					chars.map((char) => `- ${char.name} ${char.age} (${char.id})`).join('\n')
-			});
-			messages.push({
-				role: 'system',
-				content: `NEVER mention the POV character by name in your responses. The POV character is ${povCharacterId}.`
-			});
-		}
-
-		return messages;
-	}
-
 	private async getChat(chatId: string): Promise<Chat> {
 		const chatRes: ChatsResponse<Notes, ChatExpand> = await pb
 			.collection(Collections.Chats)
@@ -230,11 +180,21 @@ class EventChatAppImpl implements EventChatApp {
 		const chat = Chat.fromResponse(chatRes);
 		return chat;
 	}
+
+	private trimMessages(chat: Chat, tokens: number): OpenAIMessage[] {
+		const messages: OpenAIMessage[] = [];
+		let totalTokens = 0;
+		for (const msg of chat.getMessages()) {
+			if (!msg.content) continue;
+			totalTokens += TOKENIZERS[LLMS.GROK_4_FAST].encode(msg.content).length;
+			if (totalTokens > tokens) break;
+			messages.push({
+				role: msg.role === MessagesRoleOptions.user ? 'user' : 'assistant',
+				content: msg.content
+			});
+		}
+		return messages;
+	}
 }
 
-export const eventChatApp = new EventChatAppImpl(
-	storyApp,
-	storyEventApp,
-	scenePlanner,
-	scenePerformer
-);
+export const chatApp = new ChatAppImpl(memoryApp, sceneApp);
