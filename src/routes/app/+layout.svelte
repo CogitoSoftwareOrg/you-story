@@ -212,7 +212,7 @@
 
 		<!-- Main Content -->
 		<main class="flex-1 overflow-auto">
-			<div class="mx-auto h-full max-w-7xl p-0 md:p-4 lg:p-6">
+			<div class="mx-auto h-full max-w-7xl p-0 md:px-4 lg:px-6">
 				{@render children()}
 			</div>
 		</main>

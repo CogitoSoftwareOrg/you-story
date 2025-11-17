@@ -7,6 +7,7 @@
 	import type { Sender } from '$lib/apps/eventChat/core';
 
 	import Message from './Message.svelte';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		messages: MessagesResponse[];
@@ -33,6 +34,10 @@
 		const atBottom = scrollTop + clientHeight >= scrollHeight - 5;
 		showScrollButton = !atBottom;
 	}
+
+	onMount(() => {
+		setTimeout(() => scrollToBottom(messagesContainer), 100);
+	});
 </script>
 
 <div class={[className, 'relative h-full bg-base-100']}>

@@ -10,7 +10,13 @@
 
 	afterNavigate(() => {
 		if (!page.params.storyId || !page.params.eventId || !page.params.chatId) return;
-		uiStore.setChatSettings(page.params.storyId, page.params.eventId, page.params.chatId, 'story');
+		uiStore.setChatSettings(
+			page.params.storyId,
+			page.params.eventId,
+			page.params.chatId,
+			'',
+			'story'
+		);
 	});
 
 	$effect(() => {

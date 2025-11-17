@@ -29,9 +29,15 @@ class UIStore {
 	feedbackModalOpen = $derived(this._state?.feedbackModalOpen);
 
 	// chatSettings
-	setChatSettings(storyId: string, eventId: string, chatId: string, mode: 'story' | 'friend') {
+	setChatSettings(
+		storyId: string,
+		eventId: string,
+		chatId: string,
+		characterId: string,
+		mode: 'story' | 'friend'
+	) {
 		if (!this._state) return;
-		this._state.chatSettings = { storyId, eventId, chatId, mode };
+		this._state.chatSettings = { storyId, eventId, chatId, characterId, mode };
 		this.saveState();
 	}
 	chatUrl() {

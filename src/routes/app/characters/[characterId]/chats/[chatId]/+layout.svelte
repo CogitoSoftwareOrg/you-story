@@ -10,8 +10,8 @@
 	const chatId = $derived(page.params.chatId);
 
 	afterNavigate(() => {
-		if (!page.params.storyId || !page.params.eventId || !page.params.chatId) return;
-		uiStore.setChatSettings(page.params.storyId, page.params.eventId, page.params.chatId, 'friend');
+		if (!page.params.characterId || !page.params.chatId) return;
+		uiStore.setChatSettings('', '', page.params.chatId, page.params.characterId, 'friend');
 	});
 
 	$effect(() => {

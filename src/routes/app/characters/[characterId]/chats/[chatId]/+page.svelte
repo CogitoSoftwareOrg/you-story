@@ -136,7 +136,7 @@
 			{/if}
 		</div>
 
-		<div class="border-t border-base-300 p-4 pb-14 sm:pb-6">
+		<div class="border-t border-base-300 p-4 pb-14 sm:pb-8">
 			<MessageControls {messages} onSend={handleSendMessage} disabled={!chat} />
 		</div>
 	</div>
