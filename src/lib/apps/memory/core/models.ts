@@ -9,6 +9,7 @@ export type ProfileMemory = {
 	characterId?: string;
 	relationship?: Relationship;
 	content: string;
+	tokens: number;
 };
 
 export type EventMemory = {

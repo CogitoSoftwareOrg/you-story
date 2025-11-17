@@ -6,7 +6,8 @@ import type {
 	ProfileIndexer,
 	EventIndexer,
 	ProfileMemory,
-	EventMemory
+	EventMemory,
+	MemoryKind
 } from '../core';
 
 export class MemoryAppImpl implements MemoryApp {
@@ -18,19 +19,6 @@ export class MemoryAppImpl implements MemoryApp {
 	async get(cmd: MemoryGetCmd): Promise<Memory[]> {
 		const memories: Memory[] = [];
 		console.log(cmd);
-		// const userMemories = await this.profileIndexer.search(
-		// 	cmd.query,
-		// 	cmd.limit,
-		// 	cmd.type,
-		// 	cmd.userId,
-		// 	cmd.characterId
-		// );
-		// const characterMemories = await this.profileIndexer.search(
-		// 	cmd.query,
-		// 	cmd.limit,
-		// 	cmd.type,
-		// 	cmd.characterId
-		// );
 		return memories;
 	}
 
@@ -48,6 +36,30 @@ export class MemoryAppImpl implements MemoryApp {
 			this.profileIndexer.add(profileMemories),
 			this.eventIndexer.add(eventMemories)
 		]);
+	}
+
+	private async getStaticMemories(
+		kind: MemoryKind,
+		chatId: string,
+		tokens: number,
+		characterIds: string[]
+	): Promise<EventMemory[]> {
+		console.log(chatId, tokens, characterIds);
+		const memories: EventMemory[] = [];
+
+		return memories;
+	}
+
+	private async getChatMemories(
+		query: string,
+		chatId: string,
+		tokens: number
+	): Promise<EventMemory[]> {
+		const limit = Math.floor(tokens / 1000);
+		const half = Math.floor(limit / 2);
+		const allMemories = await this.eventIndexer.search(query, half, undefined, chatId);
+		const latestMemories = await this.eventIndexer.search(query, half, undefined, chatId, 7);
+		return [...allMemories, ...latestMemories];
 	}
 }
 

@@ -48,13 +48,6 @@
 	});
 
 	$effect(() => {
-		const user = userStore.user;
-		if (!user) {
-			goto('/app/auth', { replaceState: true });
-		}
-	});
-
-	$effect(() => {
 		const userId = userStore.user?.id;
 		if (userId) userStore.subscribe(userId);
 		storiesStore.subscribe();
