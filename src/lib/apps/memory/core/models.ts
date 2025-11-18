@@ -1,6 +1,14 @@
-export type ProfileType = 'character' | 'relationship';
+export enum ProfileType {
+	General = 'general',
+	Specific = 'specific'
+}
 
-export type EventType = 'story' | 'chat' | 'action' | 'decision';
+export enum EventType {
+	Story = 'story',
+	Chat = 'chat',
+	Action = 'action',
+	Decision = 'decision'
+}
 
 export type ProfileMemory = {
 	kind: 'profile';

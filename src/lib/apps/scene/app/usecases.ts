@@ -20,8 +20,8 @@ export class SceneAppImpl implements SceneApp {
 	) {}
 
 	// Prepare
-	async enhanceQuery(history: OpenAIMessage[]): Promise<EnhanceOutput> {
-		const enhance = await this.enhancer.enhance(history);
+	async enhanceQuery(history: OpenAIMessage[], mems: MemporyGetResult): Promise<EnhanceOutput> {
+		const enhance = await this.enhancer.enhance(history, mems);
 		return enhance;
 	}
 	async getPolicy(enhance: EnhanceOutput): Promise<ScenePolicy> {

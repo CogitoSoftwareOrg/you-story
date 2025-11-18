@@ -7,7 +7,7 @@ export type OpenAIMessage = {
 };
 
 export interface Enhancer {
-	enhance(history: OpenAIMessage[]): Promise<EnhanceOutput>;
+	enhance(history: OpenAIMessage[], mems: MemporyGetResult): Promise<EnhanceOutput>;
 }
 
 export interface ScenePlanner {

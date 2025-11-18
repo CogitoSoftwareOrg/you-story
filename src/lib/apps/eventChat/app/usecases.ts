@@ -6,7 +6,13 @@ import {
 	type ChatExpand,
 	type ChatsResponse
 } from '$lib';
-import { StepMode, type OpenAIMessage, type SceneApp, type ScenePlan } from '$lib/apps/scene/core';
+import {
+	StepMode,
+	type EnhanceOutput,
+	type OpenAIMessage,
+	type SceneApp,
+	type ScenePlan
+} from '$lib/apps/scene/core';
 import { sceneApp } from '$lib/apps/scene/app';
 import { LLMS, TOKENIZERS } from '$lib/shared/server';
 import { memoryApp } from '$lib/apps/memory/app';
@@ -37,9 +43,6 @@ class ChatAppImpl implements ChatApp {
 			content: cmd.query
 		});
 
-		const enhance = await this.sceneApp.enhanceQuery(history);
-		const policy = await this.sceneApp.getPolicy(enhance);
-
 		const npcIds = [];
 		if (chat.data.friend) {
 			npcIds.push(chat.data.friend);
@@ -52,12 +55,15 @@ class ChatAppImpl implements ChatApp {
 		}
 
 		const memRes = await this.memoryApp.get({
-			query: enhance.query,
+			query: this.getMemoryQuery(history),
 			tokens: MEMORY_TOKEN_LIMIT,
 			povId: chat.data.povCharacter,
 			npcIds: npcIds,
 			chatId: chat.data.id
 		});
+
+		const enhance = await this.sceneApp.enhanceQuery(history, memRes);
+		const policy = await this.sceneApp.getPolicy(enhance);
 
 		const scenePlanRaw = await this.sceneApp.plan(policy, memRes, history);
 		const scenePlan =
@@ -90,7 +96,7 @@ class ChatAppImpl implements ChatApp {
 		});
 		await pb.collection(Collections.Messages).delete(aiMsg.id);
 
-		return this.createSSEStream(kind, chat, scenePlan, memRes, history);
+		return this.createSSEStream(kind, chat, scenePlan, memRes, history, enhance);
 	}
 
 	private createSSEStream(
@@ -98,10 +104,12 @@ class ChatAppImpl implements ChatApp {
 		chat: Chat,
 		plan: ScenePlan,
 		memRes: MemporyGetResult,
-		history: OpenAIMessage[]
+		history: OpenAIMessage[],
+		enhance: EnhanceOutput
 	): ReadableStream {
 		const encoder = new TextEncoder();
 		const sceneApp = this.sceneApp;
+		const memoryApp = this.memoryApp;
 
 		return new ReadableStream({
 			async start(controller) {
@@ -172,6 +180,21 @@ class ChatAppImpl implements ChatApp {
 						}
 					}
 
+					const profiles = enhance.profileMemorySuggestions.map((suggestion) => ({
+						type: suggestion.type,
+						content: suggestion.content,
+						characterIds: suggestion.characterIds
+					}));
+					const events = enhance.eventMemorySuggestions.map((suggestion) => ({
+						type: suggestion.type,
+						content: suggestion.content,
+						chatId: chat.data.id
+					}));
+					await memoryApp.put({
+						profiles: profiles,
+						events: events
+					});
+
 					sendEvent('done', JSON.stringify({ totalSteps: plan.steps.length }));
 				} catch (error) {
 					sendEvent('error', JSON.stringify({ error: String(error) }));
@@ -180,6 +203,30 @@ class ChatAppImpl implements ChatApp {
 				}
 			}
 		});
+	}
+
+	private getMemoryQuery(history: OpenAIMessage[]): string {
+		const trimmed = history.at(-1)!.content.trim();
+		if (trimmed.length < 4 || ['yes', 'no', 'ok', 'yeah', 'yep', 'alright'].includes(trimmed)) {
+			const lastSubstantiveUserMessage = history.findLast(
+				(msg) => msg.role === 'user' && msg.content.length > 4
+			);
+			return lastSubstantiveUserMessage?.content ?? trimmed;
+		}
+		return trimmed;
+	}
+	private getNpcIds(chat: Chat): string[] {
+		const npcIds = [];
+		if (chat.data.friend) {
+			npcIds.push(chat.data.friend);
+		} else {
+			npcIds.push(
+				...(chat.data.expand?.storyEvent?.characters ?? []).filter(
+					(id) => id !== chat.data.povCharacter
+				)
+			);
+		}
+		return npcIds;
 	}
 
 	private async persistMessages(cmd: SendUserMessageCmd, chat: Chat) {

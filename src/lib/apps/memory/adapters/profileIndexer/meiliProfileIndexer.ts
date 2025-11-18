@@ -3,7 +3,7 @@ import { MEILI_URL, MEILI_MASTER_KEY } from '$env/static/private';
 
 import { nanoid } from '$lib/shared';
 
-import type { ProfileMemory, ProfileIndexer } from '../../core';
+import type { ProfileMemory, ProfileIndexer, ProfileType } from '../../core';
 import { EMBEDDERS, voyage } from '$lib/shared/server';
 
 const BATCH_SIZE = 128;
@@ -13,7 +13,7 @@ const CHUNK_TOKEN_LIMIT = 256;
 
 export type ProfileDoc = {
 	id: string;
-	type: 'character' | 'relationship';
+	type: ProfileType;
 	characterIds: string[];
 	content: string;
 	createdAt: string;
@@ -53,17 +53,9 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 				console.warn('Profile memory tokens are too high', memory);
 				return false;
 			}
-			if (memory.type === 'character') {
-				if (!memory.characterIds || memory.characterIds.length !== 1) {
-					console.warn('Character IDs are not valid', memory);
-					return false;
-				}
-			}
-			if (memory.type === 'relationship') {
-				if (!memory.characterIds || memory.characterIds.length !== 2) {
-					console.warn('Relationship is not valid', memory);
-					return false;
-				}
+			if (memory.characterIds.length === 0 || memory.characterIds.length > 2) {
+				console.warn('Character IDs are not valid', memory);
+				return false;
 			}
 			return true;
 		});

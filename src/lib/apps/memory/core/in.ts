@@ -1,4 +1,4 @@
-import type { EventMemory, Memory, ProfileMemory, StaticMemory } from './models';
+import type { EventMemory, EventType, ProfileType, StaticMemory, ProfileMemory } from './models';
 
 export type MemoryGetCmd = {
 	query: string;
@@ -13,8 +13,19 @@ export type MemporyGetResult = {
 	profile: ProfileMemory[];
 };
 
+export type MemoryProfilePutDto = {
+	characterIds: string[];
+	content: string;
+	type: ProfileType;
+};
+export type MemoryEventPutDto = {
+	chatId: string;
+	content: string;
+	type: EventType;
+};
 export type MemoryPutCmd = {
-	memories: Memory[];
+	profiles: MemoryProfilePutDto[];
+	events: MemoryEventPutDto[];
 };
 
 export interface MemoryApp {

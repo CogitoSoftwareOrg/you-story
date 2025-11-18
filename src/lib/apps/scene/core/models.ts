@@ -1,6 +1,7 @@
 import z from 'zod';
 
 import type { Archetype } from '$lib/apps/character/core';
+import { EventType, ProfileType } from '$lib/apps/memory/core';
 
 // SCENE INTENT
 
@@ -34,8 +35,34 @@ export enum UserEmotion {
 	Angry = 'angry'
 }
 
+export const EventMemorySuggestionSchema = z.object({
+	type: z
+		.enum(Object.values(EventType))
+		.describe('Event type, mapped to EventType on the backend.'),
+	content: z.string().describe('Short, standalone sentence that can be directly added to memory.'),
+	importance: z
+		.enum(['low', 'medium', 'high'])
+		.describe('How important it is to write this to memory.')
+});
+export type EventMemorySuggestion = z.infer<typeof EventMemorySuggestionSchema>;
+
+export const ProfileMemorySuggestionSchema = z.object({
+	type: z
+		.enum(Object.values(ProfileType))
+		.describe('Profile type, mapped to ProfileType on the backend.'),
+	content: z.string().describe('Short, standalone sentence that can be directly added to memory.'),
+	characterIds: z
+		.array(z.string())
+		.describe(
+			'Character IDs that are relevant to this memory suggestion. [1] = Concrete character profile, [2] = Relationship for pair of characters'
+		),
+	importance: z
+		.enum(['low', 'medium', 'high'])
+		.describe('How important it is to write this to memory.')
+});
+export type ProfileMemorySuggestion = z.infer<typeof ProfileMemorySuggestionSchema>;
+
 export const EnhanceOutputSchema = z.object({
-	query: z.string().describe('Enriched, explicit version of what the user wants next.'),
 	interactionIntent: z
 		.enum(Object.values(SceneIntent))
 		.describe('Best-guess high-level intent of the upcoming scene.'),
@@ -44,15 +71,25 @@ export const EnhanceOutputSchema = z.object({
 		.describe("Best-guess of the user's current emotional state."),
 	sceneFlowType: z
 		.enum(Object.values(SceneFlowType))
-		.describe('Expected structural flow for the next scene.')
-	// perCharacterMoodDelta: z
-	// 	.record(
-	// 		z.string().describe('Character ID.'),
-	// 		z
-	// 			.enum(['increased', 'decreased', 'neutral'])
-	// 			.describe('Relative change of this character’s mood since last context.')
-	// 	)
-	// 	.describe('Per-character mood change inferred from the latest interaction.')
+		.describe('Expected structural flow for the next scene.'),
+	profileMemorySuggestions: z
+		.array(ProfileMemorySuggestionSchema)
+		.describe(
+			'Profile memory suggestions for the next scene. Can be empty if no suggestions are needed.'
+		),
+	eventMemorySuggestions: z
+		.array(EventMemorySuggestionSchema)
+		.describe(
+			'Event memory suggestions for the next scene. Can be empty if no suggestions are needed.'
+		),
+	perCharacterMoodDelta: z
+		.record(
+			z.string().describe('Character ID.'),
+			z
+				.enum(['increased', 'decreased', 'neutral'])
+				.describe('Relative change of this character’s mood since last context.')
+		)
+		.describe('Per-character mood change inferred from the latest interaction.')
 });
 export type EnhanceOutput = z.infer<typeof EnhanceOutputSchema>;
 

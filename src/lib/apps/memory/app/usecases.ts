@@ -58,12 +58,31 @@ export class MemoryAppImpl implements MemoryApp {
 	async put(cmd: MemoryPutCmd): Promise<void> {
 		const profileMemories: ProfileMemory[] = [];
 		const eventMemories: EventMemory[] = [];
-		for (const memory of cmd.memories) {
-			if (memory.kind === 'profile') {
-				profileMemories.push(memory);
-			} else if (memory.kind === 'event') {
-				eventMemories.push(memory);
+		for (const profile of cmd.profiles) {
+			if (profile.characterIds.length === 0 || profile.characterIds.length > 2) {
+				console.warn('Character IDs are not valid', profile);
+				continue;
 			}
+			profileMemories.push({
+				kind: 'profile',
+				type: profile.type,
+				characterIds: profile.characterIds,
+				content: profile.content,
+				tokens: TOKENIZERS[LLMS.GROK_4_FAST].encode(profile.content).length
+			});
+		}
+		for (const event of cmd.events) {
+			if (event.chatId.trim() === '') {
+				console.warn('Chat ID is not valid', event);
+				continue;
+			}
+			eventMemories.push({
+				kind: 'event',
+				type: event.type,
+				chatId: event.chatId,
+				content: event.content,
+				tokens: TOKENIZERS[LLMS.GROK_4_FAST].encode(event.content).length
+			});
 		}
 		await Promise.all([
 			this.profileIndexer.add(profileMemories),

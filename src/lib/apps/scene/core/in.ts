@@ -11,7 +11,7 @@ export type ActCmd = {
 	history: OpenAIMessage[];
 };
 export interface SceneApp {
-	enhanceQuery(history: OpenAIMessage[]): Promise<EnhanceOutput>;
+	enhanceQuery(history: OpenAIMessage[], mems: MemporyGetResult): Promise<EnhanceOutput>;
 	getPolicy(enhance: EnhanceOutput): Promise<ScenePolicy>;
 
 	plan(policy: ScenePolicy, mems: MemporyGetResult, history: OpenAIMessage[]): Promise<ScenePlan>;
