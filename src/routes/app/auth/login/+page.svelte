@@ -23,10 +23,8 @@
 				expand: ''
 			});
 
-			const user = res.record;
-
-			await invalidate('global:user');
 			await goto('/app');
+			await invalidate('app:global');
 		} catch (err: any) {
 			console.error(err);
 			error = err;

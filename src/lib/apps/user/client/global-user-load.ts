@@ -1,6 +1,7 @@
 import { pb, type UsersResponse, type UserExpand, Collections } from '$lib';
 
 export async function globalUserLoad() {
+	console.log('globalUserLoad', pb.authStore.isValid);
 	if (!pb.authStore.isValid) {
 		return { user: null, sub: null, stories: [], characters: [] };
 	}

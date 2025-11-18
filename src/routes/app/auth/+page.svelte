@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { pb } from '$lib';
 	import ThemeController from '$lib/shared/ui/ThemeController.svelte';
 	import { Heart, Shield, AlertCircle } from 'lucide-svelte';
@@ -55,6 +55,7 @@
 			// }
 
 			await goto('/app/stories');
+			await invalidate('app:global');
 		} catch (e: any) {
 			console.error('Error during OAuth2 flow:', e);
 			error = e;

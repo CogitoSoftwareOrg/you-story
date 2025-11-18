@@ -26,7 +26,7 @@
 	import Splash from './Splash.svelte';
 
 	const { children, data } = $props();
-	const { globalPromise } = data;
+	const globalPromise = $derived(data.globalPromise);
 
 	const user = $derived(userStore.user);
 	const sub = $derived(subStore.sub);
@@ -40,13 +40,14 @@
 
 	const chatSettings = $derived(uiStore.chatSettings);
 
-	onMount(async () => {
-		const { user, sub, stories, characters, chats } = await globalPromise;
-		if (user) userStore.user = user;
-		if (sub) subStore.sub = sub;
-		if (stories) storiesStore.setStories(stories);
-		if (characters) charactersStore.setCharacters(characters);
-		if (chats) chatsStore.setChats(chats);
+	$effect(() => {
+		globalPromise.then(({ user, sub, stories, characters, chats }) => {
+			if (user) userStore.user = user;
+			if (sub) subStore.sub = sub;
+			if (stories) storiesStore.setStories(stories);
+			if (characters) charactersStore.setCharacters(characters);
+			if (chats) chatsStore.setChats(chats);
+		});
 	});
 
 	$effect(() => {
@@ -156,19 +157,21 @@
 				</ul>
 			</nav>
 
-			<div class="mb-2 flex justify-center p-0">
-				<button
-					class={['btn justify-start btn-ghost', sidebarOpen ? 'btn-block' : 'btn-circle']}
-					onclick={() => uiStore.toggleFeedbackModal()}
-				>
-					<MessageSquare class={sidebarOpen ? 'size-7' : 'mx-auto size-8'} />
-					{#if sidebarOpen}
-						Feedback
-					{:else}
-						<span class="sr-only">Feedback</span>
-					{/if}
-				</button>
-			</div>
+			{#if user}
+				<div class="mb-2 flex justify-center p-0">
+					<button
+						class={['btn justify-start btn-ghost', sidebarOpen ? 'btn-block' : 'btn-circle']}
+						onclick={() => uiStore.toggleFeedbackModal()}
+					>
+						<MessageSquare class={sidebarOpen ? 'size-7' : 'mx-auto size-8'} />
+						{#if sidebarOpen}
+							Feedback
+						{:else}
+							<span class="sr-only">Feedback</span>
+						{/if}
+					</button>
+				</div>
+			{/if}
 			<!-- Theme Controller -->
 			<div class={['mb-2 border-base-300', sidebarOpen ? '' : 'flex justify-center']}>
 				<ThemeController expanded={sidebarOpen} navStyle />

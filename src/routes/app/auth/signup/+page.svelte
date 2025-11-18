@@ -44,8 +44,8 @@
 				expand: ''
 			});
 
-			await invalidate('global:user');
 			await goto('/app');
+			await invalidate('app:global');
 		} catch (err: any) {
 			console.error(err);
 			error = err;
