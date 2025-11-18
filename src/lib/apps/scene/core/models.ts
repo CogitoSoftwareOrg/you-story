@@ -1,7 +1,7 @@
 import z from 'zod';
 
 import type { Archetype } from '$lib/apps/character/core';
-import { EventType, ProfileType } from '$lib/apps/memory/core';
+import { EventType, Importance, ProfileType } from '$lib/apps/memory/core';
 
 // SCENE INTENT
 
@@ -41,7 +41,7 @@ export const EventMemorySuggestionSchema = z.object({
 		.describe('Event type, mapped to EventType on the backend.'),
 	content: z.string().describe('Short, standalone sentence that can be directly added to memory.'),
 	importance: z
-		.enum(['low', 'medium', 'high'])
+		.enum(Object.values(Importance))
 		.describe('How important it is to write this to memory.')
 });
 export type EventMemorySuggestion = z.infer<typeof EventMemorySuggestionSchema>;
@@ -57,7 +57,7 @@ export const ProfileMemorySuggestionSchema = z.object({
 			'Character IDs that are relevant to this memory suggestion. [1] = Concrete character profile, [2] = Relationship for pair of characters'
 		),
 	importance: z
-		.enum(['low', 'medium', 'high'])
+		.enum(Object.values(Importance))
 		.describe('How important it is to write this to memory.')
 });
 export type ProfileMemorySuggestion = z.infer<typeof ProfileMemorySuggestionSchema>;

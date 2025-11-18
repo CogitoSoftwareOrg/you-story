@@ -1,4 +1,11 @@
-import type { EventMemory, EventType, ProfileType, StaticMemory, ProfileMemory } from './models';
+import type {
+	EventMemory,
+	EventType,
+	ProfileType,
+	StaticMemory,
+	ProfileMemory,
+	Importance
+} from './models';
 
 export type MemoryGetCmd = {
 	query: string;
@@ -17,11 +24,13 @@ export type MemoryProfilePutDto = {
 	characterIds: string[];
 	content: string;
 	type: ProfileType;
+	importance: Importance;
 };
 export type MemoryEventPutDto = {
 	chatId: string;
 	content: string;
 	type: EventType;
+	importance: Importance;
 };
 export type MemoryPutCmd = {
 	profiles: MemoryProfilePutDto[];

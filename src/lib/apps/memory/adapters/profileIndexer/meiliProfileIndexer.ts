@@ -2,9 +2,9 @@ import { Index, MeiliSearch, type UserProvidedEmbedder } from 'meilisearch';
 import { MEILI_URL, MEILI_MASTER_KEY } from '$env/static/private';
 
 import { nanoid } from '$lib/shared';
-
-import type { ProfileMemory, ProfileIndexer, ProfileType } from '../../core';
 import { EMBEDDERS, voyage } from '$lib/shared/server';
+
+import type { ProfileMemory, ProfileIndexer, ProfileType, Importance } from '../../core';
 
 const BATCH_SIZE = 128;
 const VOYAGE_EMBEDDER = 'voyage';
@@ -18,6 +18,7 @@ export type ProfileDoc = {
 	content: string;
 	createdAt: string;
 	tokens: number;
+	importance: Importance;
 	_vectors: Record<string, Record<string, number[]>>;
 };
 
@@ -42,7 +43,12 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 
 	async migrate(): Promise<void> {
 		await this.index.updateEmbedders(PROFILE_EMBEDDERS);
-		await this.index.updateFilterableAttributes(['type', 'characterIds', 'createdAt']);
+		await this.index.updateFilterableAttributes([
+			'type',
+			'characterIds',
+			'createdAt',
+			'importance'
+		]);
 	}
 
 	async add(memories: ProfileMemory[]): Promise<void> {
@@ -89,6 +95,7 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 				characterIds: memory.characterIds,
 				content: memory.content,
 				tokens: memory.tokens,
+				importance: memory.importance,
 				createdAt: new Date().toISOString(),
 				_vectors: {
 					[VOYAGE_EMBEDDER]: {
@@ -99,7 +106,7 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 			docs.push(doc);
 		}
 
-		await this.index.addDocuments(docs);
+		await this.index.addDocuments(docs, { primaryKey: 'id' });
 	}
 
 	async search(query: string, tokens: number, charIds: string[]): Promise<ProfileMemory[]> {
@@ -134,7 +141,8 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 			characterIds: hit.characterIds,
 			content: hit.content,
 			createdAt: hit.createdAt,
-			tokens: hit.tokens
+			tokens: hit.tokens,
+			importance: hit.importance
 		}));
 		return memories;
 	}

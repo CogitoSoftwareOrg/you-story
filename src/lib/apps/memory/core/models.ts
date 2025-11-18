@@ -10,12 +10,19 @@ export enum EventType {
 	Decision = 'decision'
 }
 
+export enum Importance {
+	Low = 'low',
+	Medium = 'medium',
+	High = 'high'
+}
+
 export type ProfileMemory = {
 	kind: 'profile';
 	type: ProfileType;
 	characterIds: string[];
 	content: string;
 	tokens: number;
+	importance: Importance;
 };
 
 export type EventMemory = {
@@ -24,6 +31,7 @@ export type EventMemory = {
 	content: string;
 	chatId: string;
 	tokens: number;
+	importance: Importance;
 };
 
 export type StaticMemory = {

@@ -183,12 +183,14 @@ class ChatAppImpl implements ChatApp {
 					const profiles = enhance.profileMemorySuggestions.map((suggestion) => ({
 						type: suggestion.type,
 						content: suggestion.content,
-						characterIds: suggestion.characterIds
+						characterIds: suggestion.characterIds,
+						importance: suggestion.importance
 					}));
 					const events = enhance.eventMemorySuggestions.map((suggestion) => ({
 						type: suggestion.type,
 						content: suggestion.content,
-						chatId: chat.data.id
+						chatId: chat.data.id,
+						importance: suggestion.importance
 					}));
 					await memoryApp.put({
 						profiles: profiles,

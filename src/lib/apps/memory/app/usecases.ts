@@ -32,6 +32,7 @@ export class MemoryAppImpl implements MemoryApp {
 	) {}
 
 	async get(cmd: MemoryGetCmd): Promise<MemporyGetResult> {
+		console.log('get', cmd);
 		const charIds = [cmd.povId, ...cmd.npcIds].filter((id) => id.trim() !== '');
 
 		// STATIC
@@ -56,6 +57,7 @@ export class MemoryAppImpl implements MemoryApp {
 	}
 
 	async put(cmd: MemoryPutCmd): Promise<void> {
+		console.log('put', cmd);
 		const profileMemories: ProfileMemory[] = [];
 		const eventMemories: EventMemory[] = [];
 		for (const profile of cmd.profiles) {
@@ -68,6 +70,7 @@ export class MemoryAppImpl implements MemoryApp {
 				type: profile.type,
 				characterIds: profile.characterIds,
 				content: profile.content,
+				importance: profile.importance,
 				tokens: TOKENIZERS[LLMS.GROK_4_FAST].encode(profile.content).length
 			});
 		}
@@ -81,6 +84,7 @@ export class MemoryAppImpl implements MemoryApp {
 				type: event.type,
 				chatId: event.chatId,
 				content: event.content,
+				importance: event.importance,
 				tokens: TOKENIZERS[LLMS.GROK_4_FAST].encode(event.content).length
 			});
 		}

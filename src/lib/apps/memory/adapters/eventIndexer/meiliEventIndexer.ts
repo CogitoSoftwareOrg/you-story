@@ -3,7 +3,7 @@ import { MEILI_URL, MEILI_MASTER_KEY } from '$env/static/private';
 
 import { nanoid } from '$lib/shared';
 
-import type { EventMemory, EventIndexer, EventType } from '../../core';
+import type { EventMemory, EventIndexer, EventType, Importance } from '../../core';
 import { EMBEDDERS, voyage } from '$lib/shared/server';
 
 const BATCH_SIZE = 128;
@@ -18,6 +18,7 @@ type EventDoc = {
 	chatId: string;
 	createdAt: string;
 	tokens: number;
+	importance: Importance;
 	_vectors: Record<string, Record<string, number[]>>;
 };
 
@@ -42,7 +43,7 @@ export class MeiliEventIndexer implements EventIndexer {
 
 	async migrate(): Promise<void> {
 		await this.index.updateEmbedders(EVENT_EMBEDDERS);
-		await this.index.updateFilterableAttributes(['type', 'chatId', 'createdAt']);
+		await this.index.updateFilterableAttributes(['type', 'chatId', 'createdAt', 'importance']);
 	}
 
 	async add(memories: EventMemory[]): Promise<void> {
@@ -83,6 +84,7 @@ export class MeiliEventIndexer implements EventIndexer {
 				type: memory.type,
 				chatId: memory.chatId,
 				content: memory.content,
+				importance: memory.importance,
 				createdAt: new Date().toISOString(),
 				tokens: memory.tokens,
 				_vectors: {
@@ -94,7 +96,7 @@ export class MeiliEventIndexer implements EventIndexer {
 			docs.push(doc);
 		}
 
-		await this.index.addDocuments(docs);
+		await this.index.addDocuments(docs, { primaryKey: 'id' });
 	}
 
 	async search(
@@ -140,7 +142,8 @@ export class MeiliEventIndexer implements EventIndexer {
 			chatId: hit.chatId,
 			content: hit.content,
 			createdAt: hit.createdAt,
-			tokens: hit.tokens
+			tokens: hit.tokens,
+			importance: hit.importance
 		}));
 		return memories;
 	}
