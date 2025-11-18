@@ -13,6 +13,7 @@
 	import { Save, ExternalLink, X } from 'lucide-svelte';
 	import { nanoid } from '$lib/shared';
 	import type { StoryBible } from '$lib/apps/story/core/models';
+
 	const storyId = $derived(page.params.storyId);
 	const story = $derived(storiesStore.stories.find((s) => s.id === storyId));
 

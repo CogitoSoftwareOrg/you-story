@@ -37,5 +37,6 @@ export type ChatExpand =
 export type UserExpand =
 	| {
 			subs_via_user: SubsResponse[] | undefined;
+			characters_via_user: CharactersResponse[] | undefined;
 	  }
 	| undefined;

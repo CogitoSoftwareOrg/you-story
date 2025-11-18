@@ -7,5 +7,6 @@ export interface SendUserMessageCmd {
 }
 
 export interface ChatApp {
+	run(cmd: SendUserMessageCmd): Promise<string>;
 	generate(cmd: SendUserMessageCmd): Promise<ReadableStream>;
 }

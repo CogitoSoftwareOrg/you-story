@@ -1,4 +1,5 @@
 import '$lib/shared/server/instrumentation';
+import '$lib/shared/server/tg';
 
 import PocketBase from 'pocketbase';
 import type { Handle } from '@sveltejs/kit';

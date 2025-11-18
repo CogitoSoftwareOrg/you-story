@@ -109,6 +109,7 @@ export type CharactersRecord<Ttags = unknown> = {
 	name?: string
 	public?: boolean
 	tags?: null | Ttags
+	tgBotToken?: string
 	updated: IsoAutoDateString
 	user?: RecordIdString
 }

@@ -1,4 +1,4 @@
-import { Index, MeiliSearch, type UserProvidedEmbedder } from 'meilisearch';
+import { type Index, MeiliSearch, type UserProvidedEmbedder } from 'meilisearch';
 import { MEILI_URL, MEILI_MASTER_KEY } from '$env/static/private';
 
 import { nanoid } from '$lib/shared';

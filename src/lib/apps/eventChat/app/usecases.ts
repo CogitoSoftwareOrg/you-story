@@ -29,8 +29,177 @@ class ChatAppImpl implements ChatApp {
 		private readonly sceneApp: SceneApp
 	) {}
 
+	async run(cmd: SendUserMessageCmd): Promise<string> {
+		const { kind, chat, scenePlan, memRes, history, enhance } = await this.prepare(cmd);
+		const finalText = await this.runSteps(
+			chat,
+			kind as 'friend' | 'story',
+			scenePlan,
+			memRes,
+			history,
+			enhance
+		);
+		return finalText;
+	}
+
 	async generate(cmd: SendUserMessageCmd): Promise<ReadableStream> {
-		// Save start messages
+		const { kind, chat, scenePlan, memRes, history, enhance } = await this.prepare(cmd);
+		return this.createSSEStream(
+			kind as 'friend' | 'story',
+			chat,
+			scenePlan,
+			memRes,
+			history,
+			enhance
+		);
+	}
+
+	private createSSEStream(
+		kind: 'friend' | 'story',
+		chat: Chat,
+		plan: ScenePlan,
+		memRes: MemporyGetResult,
+		history: OpenAIMessage[],
+		enhance: EnhanceOutput
+	): ReadableStream {
+		const encoder = new TextEncoder();
+		const runSteps = this.runSteps;
+
+		return new ReadableStream({
+			async start(controller) {
+				const sendEvent = (event: string, data: string) => {
+					controller.enqueue(encoder.encode(`event: ${event}\n`));
+					controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+				};
+
+				try {
+					await runSteps(chat, kind, plan, memRes, history, enhance, sendEvent);
+					sendEvent('done', JSON.stringify({ totalSteps: plan.steps.length }));
+				} catch (error) {
+					sendEvent('error', JSON.stringify({ error: String(error) }));
+				} finally {
+					controller.close();
+				}
+			}
+		});
+	}
+
+	private async runSteps(
+		chat: Chat,
+		kind: 'friend' | 'story',
+		plan: ScenePlan,
+		memRes: MemporyGetResult,
+		history: OpenAIMessage[],
+		enhance: EnhanceOutput,
+		sendEvent?: (event: string, data: string) => void
+	) {
+		let finalText = '';
+
+		for (let i = 0; i < plan.steps.length; i++) {
+			const aiMsg = await pb.collection(Collections.Messages).create({
+				chat: chat.data.id,
+				content: '',
+				role: MessagesRoleOptions.ai,
+				status: MessagesStatusOptions.streaming,
+				character: plan.steps[i].characterId,
+				metadata: {
+					step: plan.steps[i]
+				}
+			});
+
+			if (sendEvent) {
+				// STREAM
+				const stepStream = sceneApp.actStream(kind, plan, i, memRes, history);
+				let accumulatedText = '';
+				const reader = stepStream.getReader();
+				try {
+					while (true) {
+						const { done, value } = await reader.read();
+						if (done) break;
+
+						accumulatedText += value;
+						sendEvent(
+							'chunk',
+							JSON.stringify({
+								text: value,
+								msgId: aiMsg.id,
+								stepIndex: i
+							})
+						);
+					}
+					finalText += accumulatedText;
+
+					await pb.collection(Collections.Messages).update(aiMsg.id, {
+						status: MessagesStatusOptions.final,
+						content: accumulatedText
+					});
+					history.push({
+						role: 'assistant',
+						content: accumulatedText
+					});
+				} catch (error) {
+					await pb.collection(Collections.Messages).update(aiMsg.id, {
+						status: MessagesStatusOptions.final,
+						content: accumulatedText || 'Error occurred during generation',
+						metadata: {
+							error: String(error)
+						}
+					});
+					sendEvent(
+						'error',
+						JSON.stringify({
+							stepIndex: i,
+							msgId: aiMsg.id,
+							error: String(error)
+						})
+					);
+					throw error;
+				} finally {
+					reader.releaseLock();
+				}
+			} else {
+				// NON-STREAM
+				const answer = await this.sceneApp.act(kind, plan, i, memRes, history);
+				await pb.collection(Collections.Messages).update(aiMsg.id, {
+					status: MessagesStatusOptions.final,
+					content: answer
+				});
+				history.push({
+					role: 'assistant',
+					content: answer
+				});
+				finalText += answer;
+			}
+		}
+
+		const profiles = enhance.profileMemorySuggestions.map((suggestion) => ({
+			type: suggestion.type,
+			content: suggestion.content,
+			characterIds: suggestion.characterIds,
+			importance: suggestion.importance
+		}));
+		const events = enhance.eventMemorySuggestions.map((suggestion) => ({
+			type: suggestion.type,
+			content: suggestion.content,
+			chatId: chat.data.id,
+			importance: suggestion.importance
+		}));
+
+		if (profiles.length > 0 || events.length > 0) {
+			try {
+				await memoryApp.put({
+					profiles: profiles,
+					events: events
+				});
+			} catch (error) {
+				console.error('Failed to index memories:', error);
+			}
+		}
+
+		return finalText;
+	}
+
+	private async prepare(cmd: SendUserMessageCmd) {
 		const chat = await this.getChat(cmd.chatId);
 		const kind = chat.data.storyEvent ? 'story' : 'friend';
 
@@ -43,16 +212,7 @@ class ChatAppImpl implements ChatApp {
 			content: cmd.query
 		});
 
-		const npcIds = [];
-		if (chat.data.friend) {
-			npcIds.push(chat.data.friend);
-		} else {
-			npcIds.push(
-				...(chat.data.expand?.storyEvent?.characters ?? []).filter(
-					(id) => id !== chat.data.povCharacter
-				)
-			);
-		}
+		const npcIds = this.getNpcIds(chat);
 
 		const memRes = await this.memoryApp.get({
 			query: this.getMemoryQuery(history),
@@ -96,123 +256,7 @@ class ChatAppImpl implements ChatApp {
 		});
 		await pb.collection(Collections.Messages).delete(aiMsg.id);
 
-		return this.createSSEStream(kind, chat, scenePlan, memRes, history, enhance);
-	}
-
-	private createSSEStream(
-		kind: 'friend' | 'story',
-		chat: Chat,
-		plan: ScenePlan,
-		memRes: MemporyGetResult,
-		history: OpenAIMessage[],
-		enhance: EnhanceOutput
-	): ReadableStream {
-		const encoder = new TextEncoder();
-		const sceneApp = this.sceneApp;
-		const memoryApp = this.memoryApp;
-
-		return new ReadableStream({
-			async start(controller) {
-				const sendEvent = (event: string, data: string) => {
-					controller.enqueue(encoder.encode(`event: ${event}\n`));
-					controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-				};
-
-				try {
-					for (let i = 0; i < plan.steps.length; i++) {
-						const aiMsg = await pb.collection(Collections.Messages).create({
-							chat: chat.data.id,
-							content: '',
-							role: MessagesRoleOptions.ai,
-							status: MessagesStatusOptions.streaming,
-							character: plan.steps[i].characterId,
-							metadata: {
-								step: plan.steps[i]
-							}
-						});
-						const stepStream = sceneApp.actStream(kind, plan, i, memRes, history);
-
-						let accumulatedText = '';
-						const reader = stepStream.getReader();
-						try {
-							while (true) {
-								const { done, value } = await reader.read();
-								if (done) break;
-
-								accumulatedText += value;
-								sendEvent(
-									'chunk',
-									JSON.stringify({
-										text: value,
-										msgId: aiMsg.id,
-										stepIndex: i
-									})
-								);
-							}
-
-							await pb.collection(Collections.Messages).update(aiMsg.id, {
-								status: MessagesStatusOptions.final,
-								content: accumulatedText
-							});
-							history.push({
-								role: 'assistant',
-								content: accumulatedText
-							});
-						} catch (error) {
-							await pb.collection(Collections.Messages).update(aiMsg.id, {
-								status: MessagesStatusOptions.final,
-								content: accumulatedText || 'Error occurred during generation',
-								metadata: {
-									error: String(error)
-								}
-							});
-							sendEvent(
-								'error',
-								JSON.stringify({
-									stepIndex: i,
-									msgId: aiMsg.id,
-									error: String(error)
-								})
-							);
-							throw error;
-						} finally {
-							reader.releaseLock();
-						}
-					}
-
-					const profiles = enhance.profileMemorySuggestions.map((suggestion) => ({
-						type: suggestion.type,
-						content: suggestion.content,
-						characterIds: suggestion.characterIds,
-						importance: suggestion.importance
-					}));
-					const events = enhance.eventMemorySuggestions.map((suggestion) => ({
-						type: suggestion.type,
-						content: suggestion.content,
-						chatId: chat.data.id,
-						importance: suggestion.importance
-					}));
-
-					if (profiles.length > 0 || events.length > 0) {
-						try {
-							await memoryApp.put({
-								profiles: profiles,
-								events: events
-							});
-						} catch (error) {
-							console.error('Failed to index memories:', error);
-							// Don't throw - memory indexing failure shouldn't break the chat
-						}
-					}
-
-					sendEvent('done', JSON.stringify({ totalSteps: plan.steps.length }));
-				} catch (error) {
-					sendEvent('error', JSON.stringify({ error: String(error) }));
-				} finally {
-					controller.close();
-				}
-			}
-		});
+		return { kind, chat, scenePlan, memRes, history, enhance };
 	}
 
 	private getMemoryQuery(history: OpenAIMessage[]): string {
@@ -225,6 +269,7 @@ class ChatAppImpl implements ChatApp {
 		}
 		return trimmed;
 	}
+
 	private getNpcIds(chat: Chat): string[] {
 		const npcIds = [];
 		if (chat.data.friend) {
