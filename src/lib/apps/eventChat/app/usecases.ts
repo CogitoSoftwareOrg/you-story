@@ -192,10 +192,18 @@ class ChatAppImpl implements ChatApp {
 						chatId: chat.data.id,
 						importance: suggestion.importance
 					}));
-					await memoryApp.put({
-						profiles: profiles,
-						events: events
-					});
+
+					if (profiles.length > 0 || events.length > 0) {
+						try {
+							await memoryApp.put({
+								profiles: profiles,
+								events: events
+							});
+						} catch (error) {
+							console.error('Failed to index memories:', error);
+							// Don't throw - memory indexing failure shouldn't break the chat
+						}
+					}
 
 					sendEvent('done', JSON.stringify({ totalSteps: plan.steps.length }));
 				} catch (error) {

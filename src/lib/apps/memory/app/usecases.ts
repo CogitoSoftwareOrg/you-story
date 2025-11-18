@@ -57,41 +57,55 @@ export class MemoryAppImpl implements MemoryApp {
 	}
 
 	async put(cmd: MemoryPutCmd): Promise<void> {
-		console.log('put', cmd);
 		const profileMemories: ProfileMemory[] = [];
 		const eventMemories: EventMemory[] = [];
+
 		for (const profile of cmd.profiles) {
 			if (profile.characterIds.length === 0 || profile.characterIds.length > 2) {
 				console.warn('Character IDs are not valid', profile);
 				continue;
 			}
+			const tokens = TOKENIZERS[LLMS.GROK_4_FAST].encode(profile.content).length;
 			profileMemories.push({
 				kind: 'profile',
 				type: profile.type,
 				characterIds: profile.characterIds,
 				content: profile.content,
 				importance: profile.importance,
-				tokens: TOKENIZERS[LLMS.GROK_4_FAST].encode(profile.content).length
+				tokens
 			});
 		}
+
 		for (const event of cmd.events) {
 			if (event.chatId.trim() === '') {
 				console.warn('Chat ID is not valid', event);
 				continue;
 			}
+			const tokens = TOKENIZERS[LLMS.GROK_4_FAST].encode(event.content).length;
 			eventMemories.push({
 				kind: 'event',
 				type: event.type,
 				chatId: event.chatId,
 				content: event.content,
 				importance: event.importance,
-				tokens: TOKENIZERS[LLMS.GROK_4_FAST].encode(event.content).length
+				tokens
 			});
 		}
-		await Promise.all([
-			this.profileIndexer.add(profileMemories),
-			this.eventIndexer.add(eventMemories)
-		]);
+
+		console.log(
+			`Prepared ${profileMemories.length} profile memories and ${eventMemories.length} event memories for indexing`
+		);
+
+		try {
+			await Promise.all([
+				this.profileIndexer.add(profileMemories),
+				this.eventIndexer.add(eventMemories)
+			]);
+			console.log('Successfully completed memory indexing');
+		} catch (error) {
+			console.error('Error in memory.put:', error);
+			throw error;
+		}
 	}
 
 	private async getStaticMemories(

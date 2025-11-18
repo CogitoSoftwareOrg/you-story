@@ -63,7 +63,7 @@ class OpenAISceneEnhancer implements Enhancer {
 
 		const completion = await grokLf.chat.completions.create({
 			model: ENHANCER_MODEL,
-			messages: [...messages, ...history],
+			messages,
 			response_format: zodResponseFormat(EnhanceOutputSchema, 'query_enhancement')
 		});
 

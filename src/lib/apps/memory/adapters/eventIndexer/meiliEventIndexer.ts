@@ -7,6 +7,7 @@ import type { EventMemory, EventIndexer, EventType, Importance } from '../../cor
 import { EMBEDDERS, voyage } from '$lib/shared/server';
 
 const BATCH_SIZE = 128;
+const OUTPUT_DIMENSION = 1024;
 const VOYAGE_EMBEDDER = 'voyage';
 const SEARCH_RATIO = 0.75;
 const CHUNK_TOKEN_LIMIT = 256;
@@ -19,13 +20,13 @@ type EventDoc = {
 	createdAt: string;
 	tokens: number;
 	importance: Importance;
-	_vectors: Record<string, Record<string, number[]>>;
+	_vectors: Record<string, number[]>;
 };
 
 export const EVENT_EMBEDDERS = {
 	[VOYAGE_EMBEDDER]: {
 		source: 'userProvided',
-		dimensions: 1024
+		dimensions: OUTPUT_DIMENSION
 	} as UserProvidedEmbedder
 };
 
@@ -47,6 +48,11 @@ export class MeiliEventIndexer implements EventIndexer {
 	}
 
 	async add(memories: EventMemory[]): Promise<void> {
+		if (memories.length === 0) {
+			console.log('No event memories to index');
+			return;
+		}
+
 		const docs: EventDoc[] = [];
 		const validMemories = memories.filter((memory) => {
 			if (memory.tokens > CHUNK_TOKEN_LIMIT) {
@@ -56,13 +62,22 @@ export class MeiliEventIndexer implements EventIndexer {
 			return true;
 		});
 
+		if (validMemories.length === 0) {
+			console.warn('No valid event memories after filtering');
+			return;
+		}
+
+		console.log(`Indexing ${validMemories.length} event memories`);
+
 		const embedTasks = [];
 		for (let i = 0; i < validMemories.length; i += BATCH_SIZE) {
 			const batch = validMemories.slice(i, i + BATCH_SIZE).map((memory) => memory.content);
 			embedTasks.push(
 				voyage.embed({
 					input: batch,
-					model: EMBEDDERS.VOYAGE_LITE
+					model: EMBEDDERS.VOYAGE_LITE,
+					inputType: 'document',
+					outputDimension: OUTPUT_DIMENSION
 				})
 			);
 		}
@@ -78,7 +93,7 @@ export class MeiliEventIndexer implements EventIndexer {
 				continue;
 			}
 
-			const id = `${memory.type}:${memory.chatId}:${nanoid()}`;
+			const id = `${memory.type}-${memory.chatId}-${nanoid()}`;
 			const doc: EventDoc = {
 				id,
 				type: memory.type,
@@ -88,15 +103,24 @@ export class MeiliEventIndexer implements EventIndexer {
 				createdAt: new Date().toISOString(),
 				tokens: memory.tokens,
 				_vectors: {
-					[VOYAGE_EMBEDDER]: {
-						embeddings: embedding
-					}
+					[VOYAGE_EMBEDDER]: embedding
 				}
 			};
 			docs.push(doc);
 		}
 
-		await this.index.addDocuments(docs, { primaryKey: 'id' });
+		if (docs.length === 0) {
+			console.warn('No documents to add after processing embeddings');
+			return;
+		}
+
+		try {
+			const task = await this.index.addDocuments(docs, { primaryKey: 'id' });
+			console.log(`Successfully indexed ${docs.length} event documents. Task ID: ${task.taskUid}`);
+		} catch (error) {
+			console.error('Error indexing event documents:', error);
+			throw error;
+		}
 	}
 
 	async search(
@@ -118,7 +142,9 @@ export class MeiliEventIndexer implements EventIndexer {
 		const vector = (
 			await voyage.embed({
 				input: [query],
-				model: EMBEDDERS.VOYAGE_LITE
+				model: EMBEDDERS.VOYAGE_LITE,
+				inputType: 'document',
+				outputDimension: OUTPUT_DIMENSION
 			})
 		).data?.[0]?.embedding;
 		if (!vector) {

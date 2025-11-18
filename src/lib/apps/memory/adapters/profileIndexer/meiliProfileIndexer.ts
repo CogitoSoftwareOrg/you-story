@@ -7,7 +7,9 @@ import { EMBEDDERS, voyage } from '$lib/shared/server';
 import type { ProfileMemory, ProfileIndexer, ProfileType, Importance } from '../../core';
 
 const BATCH_SIZE = 128;
+
 const VOYAGE_EMBEDDER = 'voyage';
+const OUTPUT_DIMENSION = 1024;
 const SEARCH_RATIO = 0.75;
 const CHUNK_TOKEN_LIMIT = 256;
 
@@ -19,13 +21,13 @@ export type ProfileDoc = {
 	createdAt: string;
 	tokens: number;
 	importance: Importance;
-	_vectors: Record<string, Record<string, number[]>>;
+	_vectors: Record<string, number[]>;
 };
 
 export const PROFILE_EMBEDDERS = {
 	[VOYAGE_EMBEDDER]: {
 		source: 'userProvided',
-		dimensions: 1024
+		dimensions: OUTPUT_DIMENSION
 	} as UserProvidedEmbedder
 };
 
@@ -52,6 +54,11 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 	}
 
 	async add(memories: ProfileMemory[]): Promise<void> {
+		if (memories.length === 0) {
+			console.log('No profile memories to index');
+			return;
+		}
+
 		const docs: ProfileDoc[] = [];
 
 		const validMemories = memories.filter((memory) => {
@@ -66,13 +73,22 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 			return true;
 		});
 
+		if (validMemories.length === 0) {
+			console.warn('No valid profile memories after filtering');
+			return;
+		}
+
+		console.log(`Indexing ${validMemories.length} profile memories`);
+
 		const embedTasks = [];
 		for (let i = 0; i < validMemories.length; i += BATCH_SIZE) {
 			const batch = validMemories.slice(i, i + BATCH_SIZE).map((memory) => memory.content);
 			embedTasks.push(
 				voyage.embed({
 					input: batch,
-					model: EMBEDDERS.VOYAGE_LITE
+					model: EMBEDDERS.VOYAGE_LITE,
+					inputType: 'document',
+					outputDimension: OUTPUT_DIMENSION
 				})
 			);
 		}
@@ -88,7 +104,7 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 				continue;
 			}
 
-			const id = `${memory.type}:${memory.characterIds.join(':')}:${nanoid()}`;
+			const id = `${memory.type}-${memory.characterIds.join('-')}-${nanoid()}`;
 			const doc: ProfileDoc = {
 				id,
 				type: memory.type,
@@ -98,15 +114,26 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 				importance: memory.importance,
 				createdAt: new Date().toISOString(),
 				_vectors: {
-					[VOYAGE_EMBEDDER]: {
-						embeddings: embedding
-					}
+					[VOYAGE_EMBEDDER]: embedding
 				}
 			};
 			docs.push(doc);
 		}
 
-		await this.index.addDocuments(docs, { primaryKey: 'id' });
+		if (docs.length === 0) {
+			console.warn('No documents to add after processing embeddings');
+			return;
+		}
+
+		try {
+			const task = await this.index.addDocuments(docs, { primaryKey: 'id' });
+			console.log(
+				`Successfully indexed ${docs.length} profile documents. Task ID: ${task.taskUid}`
+			);
+		} catch (error) {
+			console.error('Error indexing profile documents:', error);
+			throw error;
+		}
 	}
 
 	async search(query: string, tokens: number, charIds: string[]): Promise<ProfileMemory[]> {
@@ -117,7 +144,9 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 		const vector = (
 			await voyage.embed({
 				input: [query],
-				model: EMBEDDERS.VOYAGE_LITE
+				model: EMBEDDERS.VOYAGE_LITE,
+				inputType: 'document',
+				outputDimension: OUTPUT_DIMENSION
 			})
 		).data?.[0]?.embedding;
 		if (!vector) {
