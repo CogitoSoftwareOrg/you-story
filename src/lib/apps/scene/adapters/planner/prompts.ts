@@ -187,4 +187,5 @@ GENERAL RULES
   - No quotes, no dialogue text, no markup.
 - If context suggests a strong next beat (reveal, apology, attack, kiss, joke, etc.),
   do NOT delay it without reason: use the tempo and densities to decide how much setup it needs.
+- IMPORTANT: Always continue the story, don't repeat yourself, focus on the story coherence and natural progression.
 `;

@@ -67,4 +67,5 @@ No trailing commas, no text before or after the JSON.
 - When the user’s request is ambiguous, make a reasonable, story-coherent guess instead of asking questions.
 - Keep the query concise but meaningful: no long recaps, focus on what the generator needs to know to produce the next scene.
 - Obey all safety and content policies: even if the intent is sexual or violent, your output must only be descriptive metadata and a safe enriched query, not explicit content.
+- IMPORTANT: Focus on the LAST USER MESSAGE. This should be the base intent and the history just for the context and help
 `;

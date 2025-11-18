@@ -202,24 +202,32 @@ class ChatAppImpl implements ChatApp {
 		const chatRes: ChatsResponse<Notes, ChatExpand> = await pb
 			.collection(Collections.Chats)
 			.getOne(chatId, {
-				expand: 'messages_via_chat,messages_via_chat.character,povCharacter,storyEvent'
+				expand: 'messages_via_chat,messages_via_chat.character,povCharacter,storyEvent',
+				sort: '-messages_via_chat.created'
 			});
 		const chat = Chat.fromResponse(chatRes);
 		return chat;
 	}
 
 	private trimMessages(chat: Chat, tokens: number): OpenAIMessage[] {
+		const allMessages = chat.getMessages().filter((msg) => msg.content);
+		const reversedMessages = [...allMessages].reverse();
+
 		const messages: OpenAIMessage[] = [];
 		let totalTokens = 0;
-		for (const msg of chat.getMessages()) {
-			if (!msg.content) continue;
-			totalTokens += TOKENIZERS[LLMS.GROK_4_FAST].encode(msg.content).length;
-			if (totalTokens > tokens) break;
+
+		for (const msg of reversedMessages) {
+			const msgTokens = TOKENIZERS[LLMS.GROK_4_FAST].encode(msg.content).length;
+			if (totalTokens + msgTokens > tokens) break;
+
+			totalTokens += msgTokens;
 			messages.push({
 				role: msg.role === MessagesRoleOptions.user ? 'user' : 'assistant',
 				content: msg.content
 			});
 		}
+
+		messages.reverse();
 		return messages;
 	}
 }
