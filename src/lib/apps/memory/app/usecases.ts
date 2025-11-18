@@ -32,7 +32,7 @@ export class MemoryAppImpl implements MemoryApp {
 	) {}
 
 	async get(cmd: MemoryGetCmd): Promise<MemporyGetResult> {
-		console.log('get', cmd);
+		console.log('Getting memories for chat: ', cmd.chatId);
 		const charIds = [cmd.povId, ...cmd.npcIds].filter((id) => id.trim() !== '');
 
 		// STATIC

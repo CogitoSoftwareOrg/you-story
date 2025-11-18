@@ -21,6 +21,7 @@ export type ProfileDoc = {
 	createdAt: string;
 	tokens: number;
 	importance: Importance;
+	charactersCount: number;
 	_vectors: Record<string, number[]>;
 };
 
@@ -109,6 +110,7 @@ export class MeiliProfileIndexer implements ProfileIndexer {
 				id,
 				type: memory.type,
 				characterIds: memory.characterIds,
+				charactersCount: memory.characterIds.length,
 				content: memory.content,
 				tokens: memory.tokens,
 				importance: memory.importance,
