@@ -69,7 +69,7 @@
 
 		<div class="mt-3">
 			{#if paid}
-				<Button onclick={manageSubscription} variant="soft" size="sm" class="w-full">
+				<Button onclick={manageSubscription} style="soft" size="sm" class="w-full">
 					<Settings class="mr-2 h-4 w-4" />
 					Manage Subscription
 				</Button>

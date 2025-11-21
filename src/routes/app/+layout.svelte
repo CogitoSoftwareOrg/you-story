@@ -279,7 +279,7 @@
 <Modal
 	class="max-h-[90vh] max-w-[90vw] sm:max-h-[95vh]"
 	backdrop
-	open={true}
+	open={uiStore.paywallOpen}
 	onclose={() => uiStore.setPaywallOpen(false)}
 >
 	<Paywall stripePrices={(data as any)?.stripePrices ?? []} />

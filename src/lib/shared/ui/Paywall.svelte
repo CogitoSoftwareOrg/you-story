@@ -106,14 +106,14 @@
 		try {
 			posthog.capture('checkout_started', {
 				price: lookup,
-				return_url: page.url.pathname.slice(1),
+				returnUrl: page.url.pathname.slice(1),
 				plan: lookupPrefix
 			});
 
 			// Using a relative path for now, assuming proxy or same origin
 			const response = await fetch(`/api/stripe/checkout`, {
 				method: 'POST',
-				body: JSON.stringify({ price: lookup, return_url: page.url.pathname.slice(1) }),
+				body: JSON.stringify({ price: lookup, returnUrl: page.url.pathname.slice(1) }),
 				headers: {
 					'Content-Type': 'application/json'
 				}
@@ -242,7 +242,7 @@
 
 				<!-- CTA Button -->
 				<Button
-					variant={plan.highlighted ? 'primary' : 'outline'}
+					style={plan.highlighted ? 'primary' : 'outline'}
 					class="w-full"
 					disabled={loading}
 					onclick={() => checkoutSession(plan.lookupPrefix)}
